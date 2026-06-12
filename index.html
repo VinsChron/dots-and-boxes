@@ -3,59 +3,113 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dots & Boxes 🎮</title>
+<title>🎮 Game Zone — Multiplayer</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',sans-serif;background:#0f0f1a;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:16px}
-h1{font-size:24px;font-weight:700;margin-bottom:2px;letter-spacing:1px}
-.sub{font-size:12px;color:#666;margin-bottom:18px}
-.card{background:#1a1a2e;border-radius:16px;padding:20px;margin-bottom:14px;border:1px solid #2a2a45;width:100%;max-width:360px}
-.card h2{font-size:15px;color:#aaa;margin-bottom:12px;font-weight:600}
-input{width:100%;padding:10px 14px;border-radius:10px;border:1px solid #333;background:#0f0f1a;color:#fff;font-size:15px;margin-bottom:10px;outline:none}
-input:focus{border-color:#4f8ef7}
-.btn{width:100%;padding:12px;border-radius:10px;border:none;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px}
+body{font-family:'Segoe UI',sans-serif;background:#0a0a14;color:#fff;min-height:100vh}
+.home{display:flex;flex-direction:column;align-items:center;padding:30px 16px}
+.logo{font-size:28px;font-weight:800;letter-spacing:2px;margin-bottom:4px}
+.logo span{color:#4f8ef7}
+.sub{font-size:13px;color:#555;margin-bottom:30px}
+.games-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;width:100%;max-width:520px}
+.game-card{background:#1a1a2e;border-radius:16px;padding:20px 16px;border:1px solid #2a2a45;cursor:pointer;transition:transform .2s,border-color .2s;text-align:center}
+.game-card:hover{transform:translateY(-3px);border-color:#4f8ef7}
+.game-card .icon{font-size:42px;margin-bottom:10px}
+.game-card .gname{font-size:15px;font-weight:700;margin-bottom:4px}
+.game-card .gdesc{font-size:12px;color:#666}
+.back-btn{background:transparent;border:1px solid #333;color:#aaa;padding:8px 16px;border-radius:10px;cursor:pointer;font-size:13px;margin-bottom:16px}
+.back-btn:hover{background:#1a1a2e}
+
+/* LOBBY */
+.lobby{display:none;flex-direction:column;align-items:center;padding:20px 16px;width:100%;max-width:380px;margin:0 auto}
+.card{background:#1a1a2e;border-radius:16px;padding:20px;margin-bottom:14px;border:1px solid #2a2a45;width:100%}
+.card h2{font-size:14px;color:#aaa;margin-bottom:12px;font-weight:600}
+input,select{width:100%;padding:10px 14px;border-radius:10px;border:1px solid #333;background:#0a0a14;color:#fff;font-size:15px;margin-bottom:10px;outline:none}
+input:focus,select:focus{border-color:#4f8ef7}
+.btn{width:100%;padding:12px;border-radius:10px;border:none;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;transition:opacity .2s}
+.btn:hover{opacity:.85}
 .blue{background:#4f8ef7;color:#fff}
 .red{background:#e24b4a;color:#fff}
 .green{background:#22c55e;color:#fff}
-.gray{background:#2a2a45;color:#ccc;border:1px solid #333}
-.or{text-align:center;color:#444;margin:8px 0;font-size:13px}
-.link-box{background:#0f0f1a;border:1px dashed #4f8ef7;border-radius:10px;padding:12px;text-align:center;margin:10px 0;word-break:break-all;font-size:13px;color:#4f8ef7;cursor:pointer}
-.link-box:hover{background:#111130}
-.status{text-align:center;font-size:13px;color:#f59e0b;min-height:20px;margin:6px 0}
-.waiting{animation:pulse 1.5s infinite;color:#888;font-size:13px;text-align:center;margin-top:8px}
+.or{text-align:center;color:#333;margin:8px 0;font-size:13px}
+.link-box{background:#0a0a14;border:1px dashed #4f8ef7;border-radius:10px;padding:12px;text-align:center;margin:10px 0;word-break:break-all;font-size:12px;color:#4f8ef7;cursor:pointer}
+.status{text-align:center;font-size:13px;color:#f59e0b;min-height:18px;margin:4px 0}
+.waiting{animation:pulse 1.5s infinite;color:#666;font-size:13px;text-align:center;margin-top:8px}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
-#game{display:none;width:100%;max-width:420px}
-.scores{display:flex;gap:10px;margin-bottom:12px}
+/* GAME AREA */
+.game-area{display:none;flex-direction:column;align-items:center;padding:16px;width:100%;max-width:440px;margin:0 auto}
+.scores{display:flex;gap:10px;margin-bottom:12px;width:100%}
 .sc{flex:1;background:#1a1a2e;border-radius:12px;padding:10px;border:2px solid transparent;text-align:center;transition:border-color .3s}
-.sc.active{border-color:#4f8ef7}
-.sc.active2{border-color:#e24b4a}
-.sc-lbl{font-size:11px;color:#888}
-.sc-num{font-size:26px;font-weight:700}
+.sc.a1{border-color:#4f8ef7}.sc.a2{border-color:#e24b4a}
+.sc-lbl{font-size:11px;color:#666}.sc-num{font-size:26px;font-weight:700}
 .blue-t{color:#4f8ef7}.red-t{color:#e24b4a}
-.turn-bar{text-align:center;font-size:14px;color:#888;margin-bottom:10px}
+.turn-bar{text-align:center;font-size:14px;color:#777;margin-bottom:10px}
 .turn-bar b{color:#fff}
-canvas{display:block;margin:0 auto;touch-action:none;border-radius:12px;background:#111120}
 .win{text-align:center;font-size:20px;font-weight:700;margin-top:12px;display:none}
-.btns{display:flex;gap:8px;margin-top:12px}
+.btns{display:flex;gap:8px;margin-top:12px;width:100%}
 .btn-s{flex:1;padding:10px;border-radius:10px;border:1px solid #333;background:#1a1a2e;color:#ccc;font-size:13px;cursor:pointer}
 .btn-s:hover{background:#2a2a45}
-.badge{text-align:center;font-size:11px;color:#444;margin-top:6px}
+
+/* TIC TAC TOE */
+.ttt-board{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(320px,90vw)}
+.ttt-cell{aspect-ratio:1;background:#1a1a2e;border-radius:12px;border:1px solid #2a2a45;font-size:52px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s}
+.ttt-cell:hover{background:#252540}
+.ttt-cell.x{color:#4f8ef7}.ttt-cell.o{color:#e24b4a}
+.ttt-cell.win-cell{background:#252540;border-color:#4f8ef7}
+
+/* CONNECT FOUR */
+#cf-board{background:#1a3a8f;border-radius:12px;padding:10px;display:inline-block}
+.cf-row{display:flex;gap:6px;margin-bottom:6px}
+.cf-col-btn{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.cf-cell{width:44px;height:44px;border-radius:50%;background:#0a1a4a;transition:background .2s}
+.cf-col-btn:hover .cf-cell:first-child{background:#555}
+.cf-cell.p1{background:#f7c948}.cf-cell.p2{background:#e24b4a}
+.cf-cell.win-cell{box-shadow:0 0 0 3px #fff}
+
+/* DOTS AND BOXES */
+#db-canvas{display:block;margin:0 auto;touch-action:none;border-radius:12px;background:#111120}
 </style>
 </head>
 <body>
-<h1>🎮 Dots & Boxes</h1>
-<p class="sub">Koi account nahi — bas link share karo!</p>
 
-<div id="lobby" style="width:100%;max-width:360px">
-  <div class="card">
+<!-- HOME SCREEN -->
+<div class="home" id="home-screen">
+  <div class="logo">GAME <span>ZONE</span></div>
+  <p class="sub">Real-time multiplayer — dost ko link bhejo!</p>
+  <div class="games-grid">
+    <div class="game-card" onclick="selectGame('ttt')">
+      <div class="icon">❌⭕</div>
+      <div class="gname">Tic Tac Toe</div>
+      <div class="gdesc">X O wala classic game</div>
+    </div>
+    <div class="game-card" onclick="selectGame('cf')">
+      <div class="icon">🔴</div>
+      <div class="gname">Connect Four</div>
+      <div class="gdesc">4 in a row banao</div>
+    </div>
+    <div class="game-card" onclick="selectGame('db')">
+      <div class="icon">🎮</div>
+      <div class="gname">Dots & Boxes</div>
+      <div class="gdesc">Dots jod ke boxes banao</div>
+    </div>
+  </div>
+</div>
+
+<!-- LOBBY -->
+<div class="lobby" id="lobby-screen">
+  <button class="back-btn" onclick="goHome()">← Wapas</button>
+  <div id="game-title" style="font-size:22px;font-weight:800;margin-bottom:16px;text-align:center"></div>
+  <div class="card" id="host-card">
     <h2>👑 Room Banao (Host)</h2>
     <input id="n1" placeholder="Tumhara naam" maxlength="12"/>
-    <select id="gs" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid #333;background:#0f0f1a;color:#fff;font-size:15px;margin-bottom:10px;outline:none">
-      <option value="4">4×4 (Chhota)</option>
-      <option value="5" selected>5×5 (Medium)</option>
-      <option value="6">6×6 (Bada)</option>
-    </select>
+    <div id="db-options" style="display:none">
+      <select id="gs">
+        <option value="4">4×4 (Chhota)</option>
+        <option value="5" selected>5×5 (Medium)</option>
+        <option value="6">6×6 (Bada)</option>
+      </select>
+    </div>
     <button class="btn blue" onclick="hostGame()">🔗 Room Banao</button>
   </div>
   <div class="or">— ya friend ne link bheja? —</div>
@@ -67,189 +121,330 @@ canvas{display:block;margin:0 auto;touch-action:none;border-radius:12px;backgrou
   </div>
 </div>
 
-<div id="game">
+<!-- GAME AREA -->
+<div class="game-area" id="game-screen">
+  <button class="back-btn" onclick="goHome()">← Wapas</button>
   <div class="scores">
     <div class="sc" id="sc1"><div class="sc-lbl" id="lb1">P1 🔵</div><div class="sc-num blue-t" id="s1">0</div></div>
     <div class="sc" id="sc2"><div class="sc-lbl" id="lb2">P2 🔴</div><div class="sc-num red-t" id="s2">0</div></div>
   </div>
   <div class="turn-bar" id="tb">...</div>
-  <canvas id="gc"></canvas>
+
+  <!-- TTT -->
+  <div id="ttt-container" style="display:none">
+    <div class="ttt-board" id="ttt-board"></div>
+  </div>
+
+  <!-- Connect Four -->
+  <div id="cf-container" style="display:none">
+    <div id="cf-board"></div>
+  </div>
+
+  <!-- Dots & Boxes -->
+  <div id="db-container" style="display:none">
+    <canvas id="db-canvas"></canvas>
+  </div>
+
   <div class="win" id="wm"></div>
   <div class="btns">
     <button class="btn-s" onclick="shareLink()">🔗 Link Share</button>
-    <button class="btn-s" onclick="location.reload()">↺ Naya Game</button>
+    <button class="btn-s" onclick="restartGame()">↺ Restart</button>
+    <button class="btn-s" onclick="goHome()">🏠 Home</button>
   </div>
-  <div class="badge" id="bdg"></div>
+  <div style="text-align:center;font-size:11px;color:#333;margin-top:8px" id="bdg"></div>
 </div>
 
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
 let peer, conn;
-let myRole = '';
-let myName = '';
-let GRID = 5;
-let hL, vL, bx, scores, current, over;
-let canvas, ctx, CELL, MAR;
-let hostLink = '';
+let myRole='', myName='', currentGame='', hostLink='';
+let gameOver=false, currentTurn='p1';
+let p1name='P1', p2name='P2';
+let GRID=5;
 
-// ── UTILS ──
-function mkGrid(g){ return Array.from({length:g},()=>Array(GRID).fill(0)); }
-function mkGridV(g){ return Array.from({length:GRID},()=>Array(g).fill(0)); }
-function resetState(){
-  hL = Array.from({length:GRID+1},()=>Array(GRID).fill(0));
-  vL = Array.from({length:GRID},()=>Array(GRID+1).fill(0));
-  bx = Array.from({length:GRID},()=>Array(GRID).fill(0));
-  scores={p1:0,p2:0}; current='p1'; over=false;
+// ── TTT STATE ──
+let tttBoard=[];
+// ── CF STATE ──
+let cfBoard=[], CF_ROWS=6, CF_COLS=7;
+// ── DB STATE ──
+let hL,vL,bx,dbScores={p1:0,p2:0};
+let dbCanvas,dbCtx,dbCELL,dbMAR;
+
+function selectGame(g){
+  currentGame=g;
+  document.getElementById('home-screen').style.display='none';
+  document.getElementById('lobby-screen').style.display='flex';
+  const titles={ttt:'❌⭕ Tic Tac Toe',cf:'🔴 Connect Four',db:'🎮 Dots & Boxes'};
+  document.getElementById('game-title').textContent=titles[g];
+  document.getElementById('db-options').style.display=g==='db'?'block':'none';
+  const params=new URLSearchParams(location.search);
+  if(params.get('join')){
+    const hn=decodeURIComponent(params.get('n')||'Host');
+    document.getElementById('lobby-screen').innerHTML=`
+      <button class="back-btn" onclick="goHome()">← Wapas</button>
+      <div style="font-size:22px;font-weight:800;margin-bottom:16px;text-align:center">${titles[g]}</div>
+      <div class="card">
+        <h2>🎮 ${hn} ne invite kiya!</h2>
+        <input id="n2" placeholder="Tumhara naam" maxlength="12"/>
+        <div class="status" id="jst"></div>
+        <button class="btn green" onclick="joinGame()">▶ Join Karo!</button>
+      </div>`;
+  }
+}
+
+function goHome(){
+  if(peer){try{peer.destroy();}catch(e){}}
+  peer=null;conn=null;gameOver=false;
+  document.getElementById('home-screen').style.display='flex';
+  document.getElementById('lobby-screen').style.display='none';
+  document.getElementById('game-screen').style.display='none';
+  history.replaceState({},'',location.pathname);
 }
 
 // ── HOST ──
-window.hostGame = function(){
-  myName = document.getElementById('n1').value.trim()||'Player 1';
-  GRID = parseInt(document.getElementById('gs').value);
-  myRole = 'p1';
-  resetState();
-
-  document.getElementById('lobby').innerHTML = `
-    <div class="card">
-      <div class="status" id="conn-st">🔄 Connecting to server...</div>
-      <div id="link-area" style="display:none">
-        <h2 style="margin-bottom:8px">✅ Room Ready!</h2>
-        <p style="font-size:13px;color:#888;margin-bottom:8px">Yeh link dost ko WhatsApp pe bhejo:</p>
-        <div class="link-box" id="lbox" onclick="shareLink()">...</div>
-        <button class="btn green" onclick="shareLink()" style="margin-top:8px">📤 WhatsApp Pe Bhejo</button>
-        <div class="waiting" id="wait-msg">Dost ke join karne ka wait kar rahe hain...</div>
-      </div>
-    </div>`;
-
-  peer = new Peer(null, {debug:0});
-  peer.on('open', id => {
-    const link = location.href.split('?')[0]+'?join='+id+'&n='+encodeURIComponent(myName)+'&g='+GRID;
-    hostLink = link;
-    document.getElementById('conn-st').style.display='none';
-    document.getElementById('link-area').style.display='block';
-    document.getElementById('lbox').textContent = link;
+window.hostGame=function(){
+  myName=document.getElementById('n1').value.trim()||'Player 1';
+  myRole='p1';
+  if(currentGame==='db') GRID=parseInt(document.getElementById('gs').value);
+  initGameState();
+  peer=new Peer(null,{debug:0});
+  peer.on('open',id=>{
+    const link=location.href.split('?')[0]+'?game='+currentGame+'&join='+id+'&n='+encodeURIComponent(myName)+'&g='+GRID;
+    hostLink=link;
+    document.getElementById('host-card').innerHTML=`
+      <h2>✅ Room Ready!</h2>
+      <p style="font-size:12px;color:#888;margin-bottom:8px">Yeh link dost ko bhejo:</p>
+      <div class="link-box" onclick="shareLink()">${link}</div>
+      <button class="btn green" onclick="shareLink()" style="margin-top:8px">📤 WhatsApp Pe Bhejo</button>
+      <div class="waiting">Dost ke join karne ka wait...</div>`;
   });
-  peer.on('connection', c => {
-    conn = c;
-    setupConn();
-    document.getElementById('wait-msg').textContent='✅ Dost connect ho gaya! Game shuru...';
+  peer.on('connection',c=>{
+    conn=c; setupConn();
     setTimeout(()=>{
-      startGame(myName, c.metadata?.name||'Player 2');
-      send({type:'start', p1name:myName, p2name:c.metadata?.name||'Player 2', grid:GRID,
-        hL, vL, bx, scores, current});
-    },800);
+      p2name=c.metadata?.name||'Player 2';
+      startGameUI();
+      send({type:'start',game:currentGame,grid:GRID,p1name:myName,p2name:p2name,
+        tttBoard,cfBoard,hL,vL,bx,dbScores,currentTurn,gameOver:false});
+    },600);
   });
-  peer.on('error', e => {
-    document.getElementById('conn-st').textContent = '❌ Error: '+e.message;
-  });
+  peer.on('error',e=>{ document.getElementById('host-card').querySelector('.waiting').textContent='❌ '+e.message; });
 };
 
 // ── JOIN ──
-window.joinGame = function(){
-  const params = new URLSearchParams(location.search);
-  const peerId = params.get('join');
-  if(!peerId){
-    document.getElementById('jst').textContent='❌ Pehle host ka link click karo!';
-    return;
-  }
-  myName = document.getElementById('n2').value.trim()||'Player 2';
-  myRole = 'p2';
-  GRID = parseInt(params.get('g'))||5;
-
+window.joinGame=function(){
+  const params=new URLSearchParams(location.search);
+  const pid=params.get('join');
+  if(!pid){document.getElementById('jst').textContent='❌ Host ka link click karo!';return;}
+  myName=document.getElementById('n2').value.trim()||'Player 2';
+  myRole='p2';
+  currentGame=params.get('game')||currentGame;
+  GRID=parseInt(params.get('g'))||5;
   document.getElementById('jst').textContent='🔄 Connect ho raha hoon...';
-  peer = new Peer(null, {debug:0});
-  peer.on('open', ()=>{
-    conn = peer.connect(peerId, {metadata:{name:myName}});
+  peer=new Peer(null,{debug:0});
+  peer.on('open',()=>{
+    conn=peer.connect(pid,{metadata:{name:myName}});
     setupConn();
     document.getElementById('jst').textContent='⏳ Host ka wait...';
   });
-  peer.on('error', e=>{
-    document.getElementById('jst').textContent='❌ Host nahi mila. Naya link maango!';
-  });
+  peer.on('error',()=>{ document.getElementById('jst').textContent='❌ Host nahi mila!'; });
 };
 
-// ── CONNECTION ──
 function setupConn(){
-  conn.on('data', data => {
+  conn.on('data',data=>{
     if(data.type==='start'){
-      GRID=data.grid;
-      hL=data.hL; vL=data.vL; bx=data.bx;
-      scores=data.scores; current=data.current; over=false;
-      startGame(data.p1name, data.p2name);
+      currentGame=data.game; GRID=data.grid||5;
+      p1name=data.p1name; p2name=data.p2name;
+      tttBoard=data.tttBoard; cfBoard=data.cfBoard;
+      hL=data.hL; vL=data.vL; bx=data.bx; dbScores=data.dbScores;
+      currentTurn=data.currentTurn; gameOver=data.gameOver;
+      startGameUI();
     } else if(data.type==='move'){
-      hL=data.hL; vL=data.vL; bx=data.bx;
-      scores=data.scores; current=data.current;
-      over=data.over;
-      updateUI(data.p1name||'P1', data.p2name||'P2');
-      draw();
-      if(over) showWin(data.p1name||'P1', data.p2name||'P2');
+      tttBoard=data.tttBoard||tttBoard;
+      cfBoard=data.cfBoard||cfBoard;
+      hL=data.hL||hL; vL=data.vL||vL; bx=data.bx||bx;
+      dbScores=data.dbScores||dbScores;
+      currentTurn=data.currentTurn; gameOver=data.gameOver;
+      renderGame();
+      updateScoreUI();
+      updateTurnBar();
+      if(gameOver&&data.winner) showWin(data.winner);
+    } else if(data.type==='restart'){
+      initGameState(); gameOver=false; currentTurn='p1';
+      renderGame(); updateScoreUI(); updateTurnBar();
+      document.getElementById('wm').style.display='none';
     }
   });
-  conn.on('close',()=>{ if(!over) alert('Dost ne connection tod diya!'); });
+  conn.on('close',()=>{ if(!gameOver) alert('Dost ne disconnect kar diya!'); });
 }
 
-function send(data){ if(conn && conn.open) conn.send(data); }
+function send(data){ if(conn&&conn.open) conn.send(data); }
 
-// ── GAME UI ──
-function startGame(p1,p2){
-  document.getElementById('lobby').style.display='none';
-  document.getElementById('game').style.display='block';
-  document.getElementById('lb1').textContent=(p1||'P1').slice(0,8)+' 🔵';
-  document.getElementById('lb2').textContent=(p2||'P2').slice(0,8)+' 🔴';
+// ── INIT STATE ──
+function initGameState(){
+  tttBoard=Array(9).fill('');
+  cfBoard=Array.from({length:CF_ROWS},()=>Array(CF_COLS).fill(0));
+  hL=Array.from({length:GRID+1},()=>Array(GRID).fill(0));
+  vL=Array.from({length:GRID},()=>Array(GRID+1).fill(0));
+  bx=Array.from({length:GRID},()=>Array(GRID).fill(0));
+  dbScores={p1:0,p2:0}; currentTurn='p1'; gameOver=false;
+}
+
+// ── START GAME UI ──
+function startGameUI(){
+  document.getElementById('lobby-screen').style.display='none';
+  document.getElementById('home-screen').style.display='none';
+  document.getElementById('game-screen').style.display='flex';
+  document.getElementById('lb1').textContent=(p1name||'P1').slice(0,8)+' 🔵';
+  document.getElementById('lb2').textContent=(p2name||'P2').slice(0,8)+' 🔴';
   document.getElementById('bdg').textContent='Connected ✅';
-  canvas=document.getElementById('gc');
-  ctx=canvas.getContext('2d');
-  const vw=Math.min(window.innerWidth-40,400);
-  canvas.width=vw; canvas.height=vw;
-  MAR=vw*0.1; CELL=(vw-MAR*2)/GRID;
-  canvas.addEventListener('click',onClick);
-  canvas.addEventListener('touchstart',onTouch,{passive:false});
-  updateUI(p1,p2); draw();
+  document.getElementById('ttt-container').style.display=currentGame==='ttt'?'block':'none';
+  document.getElementById('cf-container').style.display=currentGame==='cf'?'block':'none';
+  document.getElementById('db-container').style.display=currentGame==='db'?'block':'none';
+  if(currentGame==='db') initDbCanvas();
+  renderGame(); updateScoreUI(); updateTurnBar();
 }
 
-function updateUI(p1,p2){
-  document.getElementById('s1').textContent=scores.p1;
-  document.getElementById('s2').textContent=scores.p2;
-  const c1=document.getElementById('sc1'), c2=document.getElementById('sc2');
-  c1.className='sc'+(current==='p1'?' active':'');
-  c2.className='sc'+(current==='p2'?' active2':'');
+function updateScoreUI(){
+  if(currentGame==='db'){
+    document.getElementById('s1').textContent=dbScores.p1;
+    document.getElementById('s2').textContent=dbScores.p2;
+  }
+  const c1=document.getElementById('sc1'),c2=document.getElementById('sc2');
+  c1.className='sc'+(currentTurn==='p1'?' a1':'');
+  c2.className='sc'+(currentTurn==='p2'?' a2':'');
+}
+
+function updateTurnBar(){
   const tb=document.getElementById('tb');
-  if(over){ tb.textContent='Game khatam!'; return; }
-  if(current===myRole) tb.innerHTML='<b>Tumhari baari! ✏️ Click karo</b>';
-  else { const nm=current==='p1'?(p1||'P1'):(p2||'P2'); tb.innerHTML='<b>'+nm+'</b> ki baari...'; }
+  if(gameOver){tb.textContent='Game khatam!';return;}
+  if(currentTurn===myRole) tb.innerHTML='<b>Tumhari baari! ✏️</b>';
+  else tb.innerHTML='<b>'+(currentTurn==='p1'?p1name:p2name)+'</b> ki baari...';
 }
 
-function gp(i){ return MAR+i*CELL; }
+function renderGame(){
+  if(currentGame==='ttt') renderTTT();
+  else if(currentGame==='cf') renderCF();
+  else if(currentGame==='db') drawDB();
+}
 
-function draw(){
-  if(!canvas||!ctx) return;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+// ── TTT ──
+function renderTTT(){
+  const board=document.getElementById('ttt-board');
+  board.innerHTML='';
+  tttBoard.forEach((v,i)=>{
+    const cell=document.createElement('div');
+    cell.className='ttt-cell'+(v?' '+v.toLowerCase():'');
+    cell.textContent=v;
+    if(!v&&!gameOver&&currentTurn===myRole) cell.onclick=()=>tttMove(i);
+    board.appendChild(cell);
+  });
+}
+
+function tttMove(i){
+  if(tttBoard[i]||gameOver||currentTurn!==myRole) return;
+  tttBoard[i]=myRole==='p1'?'X':'O';
+  const winner=checkTTT();
+  gameOver=!!winner||(tttBoard.every(c=>c));
+  if(!winner&&!gameOver) currentTurn=myRole==='p1'?'p2':'p1';
+  renderTTT(); updateTurnBar();
+  send({type:'move',tttBoard,currentTurn,gameOver,winner:winner||''});
+  if(winner) showWin(winner==='X'?p1name:p2name);
+  else if(gameOver) showWin('Draw');
+}
+
+function checkTTT(){
+  const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for(const [a,b,c] of wins) if(tttBoard[a]&&tttBoard[a]===tttBoard[b]&&tttBoard[a]===tttBoard[c]) return tttBoard[a];
+  return null;
+}
+
+// ── CONNECT FOUR ──
+function renderCF(){
+  const board=document.getElementById('cf-board');
+  board.innerHTML='';
+  for(let c=0;c<CF_COLS;c++){
+    const col=document.createElement('div');
+    col.className='cf-col-btn';
+    if(!gameOver&&currentTurn===myRole) col.onclick=()=>cfMove(c);
+    for(let r=0;r<CF_ROWS;r++){
+      const cell=document.createElement('div');
+      cell.className='cf-cell'+(cfBoard[r][c]===1?' p1':cfBoard[r][c]===2?' p2':'');
+      col.appendChild(cell);
+    }
+    board.appendChild(col);
+  }
+}
+
+function cfMove(col){
+  if(gameOver||currentTurn!==myRole) return;
+  let row=-1;
+  for(let r=CF_ROWS-1;r>=0;r--){ if(!cfBoard[r][col]){row=r;break;} }
+  if(row===-1) return;
+  cfBoard[row][col]=myRole==='p1'?1:2;
+  const winner=checkCF();
+  const full=cfBoard[0].every(c=>c>0);
+  gameOver=!!winner||full;
+  if(!winner&&!gameOver) currentTurn=myRole==='p1'?'p2':'p1';
+  renderCF(); updateTurnBar();
+  send({type:'move',cfBoard,currentTurn,gameOver,winner:winner?myRole:''});
+  if(winner) showWin(myRole==='p1'?p1name:p2name);
+  else if(full) showWin('Draw');
+}
+
+function checkCF(){
+  const v=myRole==='p1'?1:2;
+  for(let r=0;r<CF_ROWS;r++) for(let c=0;c<CF_COLS;c++){
+    if(cfBoard[r][c]!==v) continue;
+    if(c+3<CF_COLS&&cfBoard[r][c+1]===v&&cfBoard[r][c+2]===v&&cfBoard[r][c+3]===v) return true;
+    if(r+3<CF_ROWS&&cfBoard[r+1][c]===v&&cfBoard[r+2][c]===v&&cfBoard[r+3][c]===v) return true;
+    if(r+3<CF_ROWS&&c+3<CF_COLS&&cfBoard[r+1][c+1]===v&&cfBoard[r+2][c+2]===v&&cfBoard[r+3][c+3]===v) return true;
+    if(r+3<CF_ROWS&&c-3>=0&&cfBoard[r+1][c-1]===v&&cfBoard[r+2][c-2]===v&&cfBoard[r+3][c-3]===v) return true;
+  }
+  return false;
+}
+
+// ── DOTS & BOXES ──
+function initDbCanvas(){
+  dbCanvas=document.getElementById('db-canvas');
+  dbCtx=dbCanvas.getContext('2d');
+  const vw=Math.min(window.innerWidth-40,400);
+  dbCanvas.width=vw; dbCanvas.height=vw;
+  dbMAR=vw*0.1; dbCELL=(vw-dbMAR*2)/GRID;
+  dbCanvas.addEventListener('click',dbClick);
+  dbCanvas.addEventListener('touchstart',dbTouch,{passive:false});
+}
+
+function gp(i){return dbMAR+i*dbCELL;}
+
+function drawDB(){
+  if(!dbCanvas||!dbCtx) return;
+  dbCtx.clearRect(0,0,dbCanvas.width,dbCanvas.height);
   for(let r=0;r<GRID;r++) for(let c=0;c<GRID;c++){
     if(bx[r][c]){
-      ctx.fillStyle=bx[r][c]===1?'rgba(79,142,247,.22)':'rgba(226,75,74,.22)';
-      ctx.fillRect(gp(c)+2,gp(r)+2,CELL-4,CELL-4);
+      dbCtx.fillStyle=bx[r][c]===1?'rgba(79,142,247,.2)':'rgba(226,75,74,.2)';
+      dbCtx.fillRect(gp(c)+2,gp(r)+2,dbCELL-4,dbCELL-4);
     }
   }
   for(let r=0;r<=GRID;r++) for(let c=0;c<GRID;c++){
-    ctx.beginPath();
-    ctx.strokeStyle=hL[r][c]===1?'#4f8ef7':hL[r][c]===2?'#e24b4a':'#2a2a45';
-    ctx.lineWidth=hL[r][c]?4:2; ctx.lineCap='round';
-    ctx.moveTo(gp(c),gp(r)); ctx.lineTo(gp(c+1),gp(r)); ctx.stroke();
+    dbCtx.beginPath();
+    dbCtx.strokeStyle=hL[r][c]===1?'#4f8ef7':hL[r][c]===2?'#e24b4a':'#2a2a45';
+    dbCtx.lineWidth=hL[r][c]?4:2; dbCtx.lineCap='round';
+    dbCtx.moveTo(gp(c),gp(r)); dbCtx.lineTo(gp(c+1),gp(r)); dbCtx.stroke();
   }
   for(let r=0;r<GRID;r++) for(let c=0;c<=GRID;c++){
-    ctx.beginPath();
-    ctx.strokeStyle=vL[r][c]===1?'#4f8ef7':vL[r][c]===2?'#e24b4a':'#2a2a45';
-    ctx.lineWidth=vL[r][c]?4:2; ctx.lineCap='round';
-    ctx.moveTo(gp(c),gp(r)); ctx.lineTo(gp(c),gp(r+1)); ctx.stroke();
+    dbCtx.beginPath();
+    dbCtx.strokeStyle=vL[r][c]===1?'#4f8ef7':vL[r][c]===2?'#e24b4a':'#2a2a45';
+    dbCtx.lineWidth=vL[r][c]?4:2; dbCtx.lineCap='round';
+    dbCtx.moveTo(gp(c),gp(r)); dbCtx.lineTo(gp(c),gp(r+1)); dbCtx.stroke();
   }
   for(let r=0;r<=GRID;r++) for(let c=0;c<=GRID;c++){
-    ctx.beginPath(); ctx.arc(gp(c),gp(r),5,0,Math.PI*2);
-    ctx.fillStyle='#aaa'; ctx.fill();
+    dbCtx.beginPath(); dbCtx.arc(gp(c),gp(r),5,0,Math.PI*2);
+    dbCtx.fillStyle='#aaa'; dbCtx.fill();
   }
 }
 
-function getLine(x,y){
-  const t=CELL*.32;
+function getDbLine(x,y){
+  const t=dbCELL*.32;
   for(let r=0;r<=GRID;r++) for(let c=0;c<GRID;c++)
     if(Math.abs(y-gp(r))<t&&x>=gp(c)&&x<=gp(c+1)) return{type:'h',r,c};
   for(let r=0;r<GRID;r++) for(let c=0;c<=GRID;c++)
@@ -257,58 +452,58 @@ function getLine(x,y){
   return null;
 }
 
-function doMove(x,y){
-  if(over||current!==myRole) return;
-  const line=getLine(x,y); if(!line) return;
+function dbDoMove(x,y){
+  if(gameOver||currentTurn!==myRole) return;
+  const line=getDbLine(x,y); if(!line) return;
   const val=myRole==='p1'?1:2;
-  if(line.type==='h'){ if(hL[line.r][line.c]) return; hL[line.r][line.c]=val; }
-  else { if(vL[line.r][line.c]) return; vL[line.r][line.c]=val; }
+  if(line.type==='h'){if(hL[line.r][line.c])return;hL[line.r][line.c]=val;}
+  else{if(vL[line.r][line.c])return;vL[line.r][line.c]=val;}
   let gained=0;
   for(let r=0;r<GRID;r++) for(let c=0;c<GRID;c++)
-    if(!bx[r][c]&&hL[r][c]&&hL[r+1][c]&&vL[r][c]&&vL[r][c+1]){
-      bx[r][c]=val; scores[myRole]++; gained++;
-    }
-  const total=scores.p1+scores.p2;
-  over=total===GRID*GRID;
-  if(!gained) current=myRole==='p1'?'p2':'p1';
-  const p1n=document.getElementById('lb1').textContent.replace(' 🔵','');
-  const p2n=document.getElementById('lb2').textContent.replace(' 🔴','');
-  send({type:'move',hL,vL,bx,scores,current,over,p1name:p1n,p2name:p2n});
-  updateUI(p1n,p2n); draw();
-  if(over) showWin(p1n,p2n);
-}
-
-function onClick(e){ const r=canvas.getBoundingClientRect(); doMove(e.clientX-r.left,e.clientY-r.top); }
-function onTouch(e){ e.preventDefault(); const r=canvas.getBoundingClientRect(); doMove(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top); }
-
-function showWin(p1,p2){
-  const wm=document.getElementById('wm'); wm.style.display='block';
-  if(scores.p1>scores.p2) wm.innerHTML='🏆 '+p1+' Jeet Gaya! ('+scores.p1+' vs '+scores.p2+')';
-  else if(scores.p2>scores.p1) wm.innerHTML='🏆 '+p2+' Jeet Gaya! ('+scores.p2+' vs '+scores.p1+')';
-  else wm.innerHTML='🤝 Draw! Dono Barabar!';
-}
-
-window.shareLink = function(){
-  const link = hostLink || location.href;
-  if(navigator.share){
-    navigator.share({title:'Dots & Boxes', text:'Aao mere saath Dots & Boxes khelo! 🎮', url:link});
-  } else {
-    navigator.clipboard.writeText(link).then(()=>alert('✅ Link copy ho gaya!\n\nWhatsApp pe paste karo:\n'+link));
+    if(!bx[r][c]&&hL[r][c]&&hL[r+1][c]&&vL[r][c]&&vL[r][c+1]){bx[r][c]=val;dbScores[myRole]++;gained++;}
+  const total=dbScores.p1+dbScores.p2;
+  gameOver=total===GRID*GRID;
+  if(!gained) currentTurn=myRole==='p1'?'p2':'p1';
+  drawDB(); updateScoreUI(); updateTurnBar();
+  send({type:'move',hL,vL,bx,dbScores,currentTurn,gameOver,winner:gameOver?'db_done':''});
+  if(gameOver){
+    if(dbScores.p1>dbScores.p2) showWin(p1name);
+    else if(dbScores.p2>dbScores.p1) showWin(p2name);
+    else showWin('Draw');
   }
+}
+
+function dbClick(e){const r=dbCanvas.getBoundingClientRect();dbDoMove(e.clientX-r.left,e.clientY-r.top);}
+function dbTouch(e){e.preventDefault();const r=dbCanvas.getBoundingClientRect();dbDoMove(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);}
+
+// ── WIN ──
+function showWin(winner){
+  const wm=document.getElementById('wm');
+  wm.style.display='block';
+  if(winner==='Draw') wm.textContent='🤝 Draw! Dono Barabar!';
+  else wm.textContent='🏆 '+winner+' Jeet Gaya!';
+}
+
+// ── RESTART ──
+window.restartGame=function(){
+  initGameState();
+  document.getElementById('wm').style.display='none';
+  renderGame(); updateScoreUI(); updateTurnBar();
+  send({type:'restart'});
 };
 
-// Auto-detect join
-const params = new URLSearchParams(location.search);
+// ── SHARE ──
+window.shareLink=function(){
+  const link=hostLink||location.href;
+  if(navigator.share) navigator.share({title:'Game Zone',text:'Aao mere saath khelo! 🎮',url:link});
+  else navigator.clipboard.writeText(link).then(()=>alert('✅ Link copy ho gaya!\n'+link));
+};
+
+// ── AUTO JOIN ──
+const params=new URLSearchParams(location.search);
 if(params.get('join')){
-  const hostName = decodeURIComponent(params.get('n')||'Host');
-  document.getElementById('lobby').innerHTML = `
-    <div class="card">
-      <h2>🎮 ${hostName} ne invite kiya!</h2>
-      <p style="font-size:13px;color:#888;margin-bottom:12px">${hostName} ke saath Dots & Boxes khelo</p>
-      <input id="n2" placeholder="Tumhara naam" maxlength="12" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid #333;background:#0f0f1a;color:#fff;font-size:15px;margin-bottom:10px;outline:none"/>
-      <div class="status" id="jst"></div>
-      <button class="btn green" onclick="joinGame()">▶ Join Karo!</button>
-    </div>`;
+  const g=params.get('game');
+  if(g) selectGame(g);
 }
 </script>
 </body>
