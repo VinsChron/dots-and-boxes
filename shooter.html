@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🔫 Battle Zone — Multiplayer Shooter</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a14;color:#fff;font-family:'Segoe UI',sans-serif;overflow:hidden;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#lobby{display:flex;flex-direction:column;align-items:center;padding:20px;width:100%;max-width:360px}
+.logo{font-size:28px;font-weight:800;margin-bottom:4px}
+.logo span{color:#e24b4a}
+.sub{font-size:12px;color:#555;margin-bottom:24px}
+.card{background:#1a1a2e;border-radius:16px;padding:20px;margin-bottom:14px;border:1px solid #2a2a45;width:100%}
+.card h2{font-size:14px;color:#aaa;margin-bottom:12px}
+input{width:100%;padding:10px 14px;border-radius:10px;border:1px solid #333;background:#0a0a14;color:#fff;font-size:15px;margin-bottom:10px;outline:none}
+.btn{width:100%;padding:12px;border-radius:10px;border:none;font-size:15px;font-weight:700;cursor:pointer}
+.blue{background:#4f8ef7;color:#fff}
+.red{background:#e24b4a;color:#fff}
+.green{background:#22c55e;color:#fff}
+.or{text-align:center;color:#333;margin:8px 0;font-size:13px}
+.status{text-align:center;font-size:13px;color:#f59e0b;min-height:18px;margin:4px 0}
+.waiting{animation:pulse 1.5s infinite;color:#666;font-size:13px;text-align:center;margin-top:8px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.link-box{background:#0a0a14;border:1px dashed #4f8ef7;border-radius:10px;padding:10px;text-align:center;margin:8px 0;word-break:break-all;font-size:11px;color:#4f8ef7;cursor:pointer}
+
+#gameWrap{display:none;width:100%;height:100vh;position:relative;flex-direction:column}
+#hud{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:#111;position:absolute;top:0;left:0;right:0;z-index:10;height:44px}
+.hud-player{display:flex;align-items:center;gap:8px}
+.hud-name{font-size:13px;font-weight:700}
+.health-bar{width:100px;height:10px;background:#333;border-radius:5px;overflow:hidden}
+.health-fill{height:100%;border-radius:5px;transition:width .2s}
+.ammo{font-size:11px;color:#aaa}
+#kills{font-size:13px;color:#f59e0b;font-weight:700}
+
+canvas{display:block;width:100%;height:calc(100vh - 44px);margin-top:44px}
+
+/* MOBILE CONTROLS */
+#controls{position:absolute;bottom:0;left:0;right:0;height:160px;display:flex;justify-content:space-between;align-items:flex-end;padding:12px;pointer-events:none;z-index:10}
+.ctrl-left,.ctrl-right{display:flex;gap:10px;pointer-events:all}
+.ctrl-btn{width:54px;height:54px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;user-select:none;-webkit-user-select:none;active:background:rgba(255,255,255,.3)}
+.ctrl-btn:active{background:rgba(255,255,255,.35)}
+.ctrl-shoot{background:rgba(226,75,74,.3);border-color:rgba(226,75,74,.6);width:64px;height:64px;font-size:26px}
+.ctrl-jump{background:rgba(79,142,247,.2);border-color:rgba(79,142,247,.5)}
+
+#win-screen{display:none;position:absolute;inset:0;background:rgba(0,0,0,.85);z-index:20;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+#win-screen h2{font-size:32px;font-weight:800;margin-bottom:8px}
+#win-screen p{font-size:16px;color:#aaa;margin-bottom:24px}
+.play-again{padding:14px 32px;border-radius:12px;border:none;background:#4f8ef7;color:#fff;font-size:16px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- LOBBY -->
+<div id="lobby">
+  <div class="logo">🔫 BATTLE <span>ZONE</span></div>
+  <p class="sub">Real-time 2-player shooter!</p>
+  <div class="card" id="host-card">
+    <h2>👑 Room Banao (Host)</h2>
+    <input id="n1" placeholder="Tumhara naam" maxlength="12"/>
+    <button class="btn blue" onclick="hostGame()">🔗 Room Banao</button>
+  </div>
+  <div class="or">— ya friend ne link bheja? —</div>
+  <div class="card" id="join-card">
+    <h2>🙋 Join Karo</h2>
+    <input id="n2" placeholder="Tumhara naam" maxlength="12"/>
+    <div class="status" id="jst"></div>
+    <button class="btn red" onclick="joinGame()">▶ Join Karo</button>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="gameWrap">
+  <div id="hud">
+    <div class="hud-player">
+      <div class="hud-name" id="h-p1name" style="color:#4f8ef7">P1</div>
+      <div class="health-bar"><div class="health-fill" id="h-p1hp" style="background:#22c55e;width:100%"></div></div>
+      <div class="ammo" id="h-p1ammo">🔫 30</div>
+    </div>
+    <div id="kills">0 : 0</div>
+    <div class="hud-player">
+      <div class="ammo" id="h-p2ammo">🔫 30</div>
+      <div class="health-bar"><div class="health-fill" id="h-p2hp" style="background:#22c55e;width:100%"></div></div>
+      <div class="hud-name" id="h-p2name" style="color:#e24b4a">P2</div>
+    </div>
+  </div>
+  <canvas id="gc"></canvas>
+  <div id="controls">
+    <div class="ctrl-left">
+      <div class="ctrl-btn" id="btn-left">◀</div>
+      <div class="ctrl-btn" id="btn-right">▶</div>
+      <div class="ctrl-btn ctrl-jump" id="btn-jump">⬆</div>
+    </div>
+    <div class="ctrl-right">
+      <div class="ctrl-btn" id="btn-aim-up">↖</div>
+      <div class="ctrl-btn ctrl-shoot" id="btn-shoot">🔫</div>
+      <div class="ctrl-btn" id="btn-aim-dn">↙</div>
+      <div class="ctrl-btn" id="btn-reload" style="font-size:16px">🔄</div>
+    </div>
+  </div>
+  <div id="win-screen">
+    <h2 id="win-text">🏆 Winner!</h2>
+    <p id="win-sub"></p>
+    <button class="play-again" onclick="restartGame()">▶ Phir Khelo</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<script>
+// ── PEER ──
+let peer, conn, myRole='', myName='', hostLink='';
+
+// ── CANVAS ──
+const canvas = document.getElementById('gc');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize(){
+  W = canvas.width = canvas.offsetWidth;
+  H = canvas.height = canvas.offsetHeight;
+}
+
+// ── GAME STATE ──
+const GRAVITY = 0.5, JUMP = -13, SPEED = 4, BULLET_SPEED = 12;
+const PLAYER_W = 28, PLAYER_H = 40;
+const MAX_HP = 100, MAX_AMMO = 30;
+
+let players = {
+  p1: { x:120, y:200, vx:0, vy:0, hp:100, ammo:30, kills:0, dir:1, aimAngle:0, onGround:false, reloading:false, reloadTimer:0, flash:0, name:'P1', color:'#4f8ef7' },
+  p2: { x:600, y:200, vx:0, vy:0, hp:100, ammo:30, kills:0, dir:-1, aimAngle:Math.PI, onGround:false, reloading:false, reloadTimer:0, flash:0, name:'P2', color:'#e24b4a' }
+};
+let bullets = [];
+let particles = [];
+let platforms = [];
+let gameRunning = false;
+let keys = {};
+let lastSent = 0;
+let aimDir = 0; // -1 up, 0 mid, 1 down
+
+function initPlatforms(){
+  platforms = [
+    {x:0,   y:H-40,  w:W,    h:40},   // ground
+    {x:W*.1,y:H*.65, w:W*.2, h:14},
+    {x:W*.7,y:H*.65, w:W*.2, h:14},
+    {x:W*.35,y:H*.48,w:W*.3, h:14},
+    {x:W*.1,y:H*.32, w:W*.18,h:14},
+    {x:W*.72,y:H*.32,w:W*.18,h:14},
+    {x:W*.38,y:H*.18,w:W*.24,h:14},
+  ];
+}
+
+function resetPlayers(){
+  players.p1 = { x:W*.15, y:H*.5, vx:0, vy:0, hp:100, ammo:30, kills:players.p1.kills, dir:1, aimAngle:0, onGround:false, reloading:false, reloadTimer:0, flash:0, name:players.p1.name, color:'#4f8ef7' };
+  players.p2 = { x:W*.8,  y:H*.5, vx:0, vy:0, hp:100, ammo:30, kills:players.p2.kills, dir:-1, aimAngle:Math.PI, onGround:false, reloading:false, reloadTimer:0, flash:0, name:players.p2.name, color:'#e24b4a' };
+  bullets = []; particles = [];
+}
+
+// ── PHYSICS ──
+function applyPhysics(p){
+  p.vy += GRAVITY;
+  p.x += p.vx;
+  p.y += p.vy;
+  p.onGround = false;
+  for(const pl of platforms){
+    if(p.x+PLAYER_W > pl.x && p.x < pl.x+pl.w && p.y+PLAYER_H > pl.y && p.y+PLAYER_H < pl.y+pl.h+p.vy+2 && p.vy >= 0){
+      p.y = pl.y - PLAYER_H;
+      p.vy = 0;
+      p.onGround = true;
+    }
+    // ceiling
+    if(p.x+PLAYER_W>pl.x&&p.x<pl.x+pl.w&&p.y<pl.y+pl.h&&p.y>pl.y&&p.vy<0){
+      p.y=pl.y+pl.h; p.vy=0;
+    }
+    // walls
+    if(p.y+PLAYER_H>pl.y&&p.y<pl.y+pl.h){
+      if(p.x+PLAYER_W>pl.x&&p.x+PLAYER_W<pl.x+20&&p.vx>0){p.x=pl.x-PLAYER_W;p.vx=0;}
+      if(p.x<pl.x+pl.w&&p.x>pl.x+pl.w-20&&p.vx<0){p.x=pl.x+pl.w;p.vx=0;}
+    }
+  }
+  // bounds
+  if(p.x<0){p.x=0;p.vx=0;}
+  if(p.x+PLAYER_W>W){p.x=W-PLAYER_W;p.vx=0;}
+  if(p.y>H+100){p.y=0;} // fell off - respawn top
+  p.vx *= 0.8;
+  if(p.flash>0) p.flash--;
+  if(p.reloading){ p.reloadTimer--; if(p.reloadTimer<=0){p.ammo=MAX_AMMO;p.reloading=false;}}
+}
+
+function getAimAngle(p, dir){
+  if(dir===-1) return p.dir>0?-Math.PI/4:Math.PI+Math.PI/4;
+  if(dir===1)  return p.dir>0?Math.PI/4:-Math.PI-Math.PI/4;
+  return p.dir>0?0:Math.PI;
+}
+
+// ── INPUT ──
+document.addEventListener('keydown',e=>{keys[e.code]=true;});
+document.addEventListener('keyup',e=>{keys[e.code]=false;});
+
+function handleMyInput(){
+  const me = players[myRole];
+  if(!me||!gameRunning) return;
+  // move
+  if(keys['ArrowLeft']||keys['KeyA']){ me.vx=-SPEED; me.dir=-1; }
+  if(keys['ArrowRight']||keys['KeyD']){ me.vx=SPEED; me.dir=1; }
+  if((keys['ArrowUp']||keys['KeyW']||keys['Space'])&&me.onGround){ me.vy=JUMP; }
+  if(keys['ArrowUp']||keys['KeyW']) aimDir=-1;
+  else if(keys['KeyS']||keys['ArrowDown']) aimDir=1;
+  else aimDir=0;
+  me.aimAngle = getAimAngle(me, aimDir);
+  if(keys['KeyR']&&!me.reloading&&me.ammo<MAX_AMMO){ me.reloading=true; me.reloadTimer=90; }
+}
+
+// ── SHOOT ──
+let shootCooldown=0;
+function shoot(){
+  const me = players[myRole];
+  if(!me||!gameRunning) return;
+  if(me.ammo<=0||me.reloading||shootCooldown>0) return;
+  const ang = me.aimAngle;
+  const bx = me.x+PLAYER_W/2 + Math.cos(ang)*20;
+  const by = me.y+PLAYER_H/2 + Math.sin(ang)*20;
+  const b = {x:bx,y:by,vx:Math.cos(ang)*BULLET_SPEED,vy:Math.sin(ang)*BULLET_SPEED,owner:myRole,life:60};
+  bullets.push(b);
+  me.ammo--;
+  shootCooldown=8;
+  send({type:'bullet',b:{...b}});
+  // muzzle flash
+  for(let i=0;i<5;i++) particles.push({x:bx,y:by,vx:Math.cos(ang+Math.random()-.5)*4,vy:Math.sin(ang+Math.random()-.5)*4,life:10,color:'#f7c948',r:3});
+}
+
+// ── BULLETS ──
+function updateBullets(){
+  bullets = bullets.filter(b=>{
+    b.x+=b.vx; b.y+=b.vy; b.life--;
+    if(b.life<=0) return false;
+    // hit platform
+    for(const pl of platforms){
+      if(b.x>pl.x&&b.x<pl.x+pl.w&&b.y>pl.y&&b.y<pl.y+pl.h){
+        for(let i=0;i<4;i++) particles.push({x:b.x,y:b.y,vx:(Math.random()-.5)*4,vy:(Math.random()-.5)*4,life:12,color:'#aaa',r:2});
+        return false;
+      }
+    }
+    // hit opponent (only I check my bullets)
+    if(b.owner===myRole){
+      const opp = myRole==='p1'?players.p2:players.p1;
+      if(opp&&b.x>opp.x&&b.x<opp.x+PLAYER_W&&b.y>opp.y&&b.y<opp.y+PLAYER_H){
+        const dmg=10;
+        opp.hp-=dmg; opp.flash=8;
+        for(let i=0;i<8;i++) particles.push({x:b.x,y:b.y,vx:(Math.random()-.5)*6,vy:(Math.random()-.5)*6,life:18,color:'#e24b4a',r:3});
+        send({type:'hit',target:b.owner==='p1'?'p2':'p1',dmg});
+        if(opp.hp<=0){
+          players[myRole].kills++;
+          send({type:'kill',killer:myRole});
+          checkWin();
+          resetPlayers();
+        }
+        return false;
+      }
+    }
+    return true;
+  });
+}
+
+function checkWin(){
+  const p1k=players.p1.kills, p2k=players.p2.kills;
+  if(p1k>=5||p2k>=5){
+    gameRunning=false;
+    const winner=p1k>=5?players.p1.name:players.p2.name;
+    document.getElementById('win-text').textContent='🏆 '+winner+' Jeet Gaya!';
+    document.getElementById('win-sub').textContent=p1k+' kills vs '+p2k+' kills';
+    document.getElementById('win-screen').style.display='flex';
+  }
+}
+
+// ── PARTICLES ──
+function updateParticles(){
+  particles=particles.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.2;p.life--;return p.life>0;});
+}
+
+// ── DRAW ──
+function drawBg(){
+  // sky gradient
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'#0a0a20');
+  grad.addColorStop(1,'#1a1a3a');
+  ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
+  // stars
+  ctx.fillStyle='rgba(255,255,255,.4)';
+  for(let i=0;i<60;i++){
+    const sx=(i*137)%W, sy=(i*79)%H*.6;
+    ctx.fillRect(sx,sy,1.5,1.5);
+  }
+}
+
+function drawPlatforms(){
+  platforms.forEach((pl,i)=>{
+    const g=ctx.createLinearGradient(0,pl.y,0,pl.y+pl.h);
+    g.addColorStop(0,'#3a5a2a'); g.addColorStop(1,'#2a4a1a');
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.roundRect(pl.x,pl.y,pl.w,pl.h,4); ctx.fill();
+    ctx.fillStyle='#5a9a3a';
+    ctx.fillRect(pl.x,pl.y,pl.w,4);
+  });
+}
+
+function drawPlayer(p, role){
+  if(!p||p.hp<=0) return;
+  ctx.save();
+  const cx=p.x+PLAYER_W/2, cy=p.y+PLAYER_H/2;
+  // flash red when hit
+  if(p.flash>0) ctx.globalAlpha=0.7;
+  // body
+  ctx.fillStyle=p.flash>0?'#fff':p.color;
+  ctx.beginPath(); ctx.roundRect(p.x,p.y,PLAYER_W,PLAYER_H,6); ctx.fill();
+  // head
+  ctx.fillStyle=p.flash>0?'#ffaaaa':'#f5d5a0';
+  ctx.beginPath(); ctx.arc(cx,p.y-8,12,0,Math.PI*2); ctx.fill();
+  // eye
+  ctx.fillStyle='#222';
+  ctx.beginPath(); ctx.arc(cx+(p.dir*5),p.y-10,3,0,Math.PI*2); ctx.fill();
+  // gun
+  ctx.strokeStyle=p.flash>0?'#fff':'#aaa';
+  ctx.lineWidth=4; ctx.lineCap='round';
+  const gunLen=22;
+  ctx.beginPath();
+  ctx.moveTo(cx,cy);
+  ctx.lineTo(cx+Math.cos(p.aimAngle)*gunLen, cy+Math.sin(p.aimAngle)*gunLen);
+  ctx.stroke();
+  // reload bar
+  if(p.reloading){
+    const prog=1-(p.reloadTimer/90);
+    ctx.fillStyle='rgba(0,0,0,.5)';
+    ctx.fillRect(p.x,p.y-18,PLAYER_W,6);
+    ctx.fillStyle='#f7c948';
+    ctx.fillRect(p.x,p.y-18,PLAYER_W*prog,6);
+  }
+  // health bar above head
+  ctx.fillStyle='rgba(0,0,0,.5)';
+  ctx.fillRect(p.x,p.y-26,PLAYER_W,5);
+  ctx.fillStyle=p.hp>50?'#22c55e':p.hp>25?'#f59e0b':'#e24b4a';
+  ctx.fillRect(p.x,p.y-26,PLAYER_W*(p.hp/MAX_HP),5);
+  // name
+  ctx.fillStyle='rgba(255,255,255,.8)';
+  ctx.font='bold 10px Segoe UI';
+  ctx.textAlign='center';
+  ctx.fillText(p.name,cx,p.y-30);
+  ctx.restore();
+}
+
+function drawBullets(){
+  bullets.forEach(b=>{
+    ctx.save();
+    ctx.fillStyle='#f7c948';
+    ctx.shadowColor='#f7c948'; ctx.shadowBlur=8;
+    ctx.beginPath(); ctx.arc(b.x,b.y,4,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+}
+
+function drawParticles(){
+  particles.forEach(p=>{
+    ctx.save();
+    ctx.globalAlpha=p.life/20;
+    ctx.fillStyle=p.color;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+}
+
+function updateHUD(){
+  const p1=players.p1, p2=players.p2;
+  document.getElementById('h-p1name').textContent=p1.name;
+  document.getElementById('h-p2name').textContent=p2.name;
+  const hp1=Math.max(0,p1.hp/MAX_HP*100);
+  const hp2=Math.max(0,p2.hp/MAX_HP*100);
+  document.getElementById('h-p1hp').style.width=hp1+'%';
+  document.getElementById('h-p2hp').style.width=hp2+'%';
+  document.getElementById('h-p1hp').style.background=hp1>50?'#22c55e':hp1>25?'#f59e0b':'#e24b4a';
+  document.getElementById('h-p2hp').style.background=hp2>50?'#22c55e':hp2>25?'#f59e0b':'#e24b4a';
+  document.getElementById('h-p1ammo').textContent=(p1.reloading?'🔄 Reloading...':'🔫 '+p1.ammo);
+  document.getElementById('h-p2ammo').textContent=(p2.reloading?'🔄 Reloading...':'🔫 '+p2.ammo);
+  document.getElementById('kills').textContent=p1.kills+' : '+p2.kills;
+}
+
+// ── GAME LOOP ──
+let raf;
+function loop(){
+  if(!gameRunning){return;}
+  raf=requestAnimationFrame(loop);
+  handleMyInput();
+  if(shootCooldown>0) shootCooldown--;
+  applyPhysics(players[myRole]);
+  updateBullets();
+  updateParticles();
+  // send my state
+  const now=Date.now();
+  if(now-lastSent>33){
+    const me=players[myRole];
+    send({type:'state',role:myRole,x:me.x,y:me.y,vx:me.vx,vy:me.vy,hp:me.hp,ammo:me.ammo,kills:me.kills,dir:me.dir,aimAngle:me.aimAngle,reloading:me.reloading,reloadTimer:me.reloadTimer});
+    lastSent=now;
+  }
+  // DRAW
+  ctx.clearRect(0,0,W,H);
+  drawBg(); drawPlatforms();
+  drawPlayer(players.p1,'p1'); drawPlayer(players.p2,'p2');
+  drawBullets(); drawParticles();
+  updateHUD();
+}
+
+// ── PEER NETWORK ──
+window.hostGame=function(){
+  myName=document.getElementById('n1').value.trim()||'Player 1';
+  myRole='p1';
+  players.p1.name=myName;
+  peer=new Peer(null,{debug:0});
+  peer.on('open',id=>{
+    hostLink=location.href.split('?')[0]+'?join='+id+'&n='+encodeURIComponent(myName);
+    document.getElementById('host-card').innerHTML=`
+      <h2>✅ Room Ready!</h2>
+      <div class="link-box" onclick="shareLink()">${hostLink}</div>
+      <button class="btn green" onclick="shareLink()" style="margin-top:8px">📤 WhatsApp Pe Bhejo</button>
+      <div class="waiting">Dost ke join karne ka wait...</div>`;
+  });
+  peer.on('connection',c=>{
+    conn=c; setupConn();
+    setTimeout(()=>{
+      players.p2.name=c.metadata?.name||'Player 2';
+      startGame();
+      send({type:'start',p1name:myName,p2name:players.p2.name});
+    },500);
+  });
+};
+
+window.joinGame=function(){
+  const params=new URLSearchParams(location.search);
+  const pid=params.get('join');
+  if(!pid){document.getElementById('jst').textContent='❌ Host ka link click karo!';return;}
+  myName=document.getElementById('n2').value.trim()||'Player 2';
+  myRole='p2';
+  players.p2.name=myName;
+  document.getElementById('jst').textContent='🔄 Connect ho raha hoon...';
+  peer=new Peer(null,{debug:0});
+  peer.on('open',()=>{
+    conn=peer.connect(pid,{metadata:{name:myName}});
+    setupConn();
+    document.getElementById('jst').textContent='⏳ Host ka wait...';
+  });
+  peer.on('error',()=>document.getElementById('jst').textContent='❌ Host nahi mila!');
+};
+
+function setupConn(){
+  conn.on('data',data=>{
+    if(data.type==='start'){
+      players.p1.name=data.p1name; players.p2.name=data.p2name;
+      startGame();
+    } else if(data.type==='state'){
+      const opp=data.role==='p1'?players.p1:players.p2;
+      Object.assign(opp,{x:data.x,y:data.y,vx:data.vx,vy:data.vy,hp:data.hp,ammo:data.ammo,kills:data.kills,dir:data.dir,aimAngle:data.aimAngle,reloading:data.reloading,reloadTimer:data.reloadTimer});
+    } else if(data.type==='bullet'){
+      bullets.push({...data.b,life:60});
+    } else if(data.type==='hit'){
+      const t=players[data.target];
+      if(t){t.hp-=data.dmg;t.flash=8;}
+    } else if(data.type==='kill'){
+      players[data.killer].kills++;
+      checkWin();
+      resetPlayers();
+    } else if(data.type==='restart'){
+      doRestart();
+    }
+  });
+  conn.on('close',()=>{ if(gameRunning) alert('Dost ne disconnect kar diya!'); });
+}
+
+function send(data){ if(conn&&conn.open) conn.send(data); }
+
+function startGame(){
+  document.getElementById('lobby').style.display='none';
+  document.getElementById('gameWrap').style.display='flex';
+  resize(); initPlatforms(); resetPlayers();
+  gameRunning=true;
+  loop();
+}
+
+function doRestart(){
+  players.p1.kills=0; players.p2.kills=0;
+  resetPlayers();
+  document.getElementById('win-screen').style.display='none';
+  gameRunning=true;
+  loop();
+}
+
+window.restartGame=function(){
+  doRestart();
+  send({type:'restart'});
+};
+
+window.shareLink=function(){
+  const link=hostLink||location.href;
+  if(navigator.share) navigator.share({title:'Battle Zone',text:'Aao mere saath khelo! 🔫',url:link});
+  else navigator.clipboard.writeText(link).then(()=>alert('✅ Link copy ho gaya!\n'+link));
+};
+
+// ── MOBILE CONTROLS ──
+function holdBtn(id, fn, interval=80){
+  const el=document.getElementById(id);
+  let t;
+  el.addEventListener('touchstart',e=>{e.preventDefault();fn();t=setInterval(fn,interval);},{passive:false});
+  el.addEventListener('touchend',()=>clearInterval(t));
+  el.addEventListener('mousedown',()=>{fn();t=setInterval(fn,interval);});
+  el.addEventListener('mouseup',()=>clearInterval(t));
+}
+
+function tapBtn(id,fn){
+  const el=document.getElementById(id);
+  el.addEventListener('touchstart',e=>{e.preventDefault();fn();},{passive:false});
+  el.addEventListener('click',fn);
+}
+
+holdBtn('btn-left',()=>{const me=players[myRole];if(me){me.vx=-SPEED;me.dir=-1;me.aimAngle=getAimAngle(me,aimDir);}});
+holdBtn('btn-right',()=>{const me=players[myRole];if(me){me.vx=SPEED;me.dir=1;me.aimAngle=getAimAngle(me,aimDir);}});
+tapBtn('btn-jump',()=>{const me=players[myRole];if(me&&me.onGround){me.vy=JUMP;}});
+holdBtn('btn-shoot',()=>shoot(),100);
+tapBtn('btn-aim-up',()=>{aimDir=-1;const me=players[myRole];if(me)me.aimAngle=getAimAngle(me,-1);});
+tapBtn('btn-aim-dn',()=>{aimDir=1;const me=players[myRole];if(me)me.aimAngle=getAimAngle(me,1);});
+tapBtn('btn-reload',()=>{const me=players[myRole];if(me&&!me.reloading){me.reloading=true;me.reloadTimer=90;}});
+
+// resize
+window.addEventListener('resize',()=>{resize();initPlatforms();});
+
+// auto join
+const params=new URLSearchParams(location.search);
+if(params.get('join')){
+  const hn=decodeURIComponent(params.get('n')||'Host');
+  document.getElementById('join-card').innerHTML=`
+    <h2>🎮 ${hn} ne invite kiya!</h2>
+    <input id="n2" placeholder="Tumhara naam" maxlength="12"/>
+    <div class="status" id="jst"></div>
+    <button class="btn green" onclick="joinGame()">🔫 Join Karo!</button>`;
+  document.getElementById('host-card').style.display='none';
+  document.querySelector('.or').style.display='none';
+}
+</script>
+</body>
+</html>
