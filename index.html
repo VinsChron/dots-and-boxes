@@ -110,14 +110,15 @@ input:focus,select:focus{border-color:#4f8ef7}
         <option value="10">10×10 (Pro)</option>
       </select>
     </div>
-    <button class="btn blue" onclick="hostGame()">🔗 Room Banao</button>
+    <button class="btn blue" onclick="hostGame()">🎲 Room Banao</button>
   </div>
-  <div class="or">— ya friend ne link bheja? —</div>
+  <div class="or">— ya Room Code daalo —</div>
   <div class="card">
-    <h2>🙋 Join Karo</h2>
+    <h2>🙋 Join Karo (Code Se)</h2>
     <input id="n2" placeholder="Tumhara naam" maxlength="12"/>
+    <input id="room-code-input" placeholder="4 Letter Room Code" maxlength="4" style="text-transform:uppercase;letter-spacing:6px;text-align:center;font-size:22px;font-weight:700"/>
     <div class="status" id="jst"></div>
-    <button class="btn red" onclick="joinGame()">▶ Join Karo</button>
+    <button class="btn red" onclick="joinByCode()">▶ Join Karo</button>
   </div>
 </div>
 
@@ -146,6 +147,19 @@ input:focus,select:focus{border-color:#4f8ef7}
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
 let peer,conn,myRole='',myName='',currentGame='',hostLink='';
+let myRoomCode='';
+
+function genCode(){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let r='';
+  for(let i=0;i<4;i++) r+=c[Math.floor(Math.random()*c.length)];
+  return r;
+}
+
+function makePeerId(code, role){
+  // Deterministic peer ID from room code so joiner can connect directly!
+  return 'GAMEZONE__' + code + '__' + role;
+}
 let gameOver=false,currentTurn='p1',p1name='P1',p2name='P2',GRID=6;
 let tttBoard=[],cfBoard=[],CF_ROWS=6,CF_COLS=7;
 let hL,vL,bx,dbScores={p1:0,p2:0};
@@ -189,67 +203,93 @@ window.hostGame=function(){
   myRole='p1'; p1name=myName;
   if(currentGame==='db') GRID=parseInt(document.getElementById('gs').value);
   initGameState();
-  const peerCfg={config:{iceServers:[
-    {urls:'stun:stun.l.google.com:19302'},
-    {urls:'stun:stun1.l.google.com:19302'},
-    {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
-  ]},debug:0};
-  peer=new Peer(null,peerCfg);
-  peer.on('open',id=>{
-    const link=location.href.split('?')[0]+'?game='+currentGame+'&join='+id+'&n='+encodeURIComponent(myName)+'&g='+GRID;
-    hostLink=link;
+  myRoomCode=genCode();
+  const peerId='GZ-'+myRoomCode+'-p1';
+  peer=new Peer(peerId,{
+    config:{iceServers:[
+      {urls:'stun:stun.l.google.com:19302'},
+      {urls:'stun:stun1.l.google.com:19302'},
+      {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
+      {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
+    ]},debug:0
+  });
+  peer.on('open',()=>{
     document.getElementById('host-card').innerHTML=`
       <h2>✅ Room Ready!</h2>
-      <p style="font-size:12px;color:#888;margin-bottom:8px">Yeh link dost ko WhatsApp pe bhejo:</p>
-      <div class="link-box" onclick="shareLink()">${link}</div>
-      <button class="btn green" onclick="shareLink()" style="margin-top:8px">📤 WhatsApp Pe Bhejo</button>
+      <p style="font-size:13px;color:#aaa;margin-bottom:8px">Yeh <b>Room Code</b> dost ko bhejo:</p>
+      <div style="background:#0a0a14;border:2px solid #4f8ef7;border-radius:14px;padding:18px;text-align:center;margin:10px 0">
+        <div style="font-size:44px;font-weight:900;letter-spacing:12px;color:#4f8ef7">${myRoomCode}</div>
+        <div style="font-size:11px;color:#555;margin-top:4px">Dost is code ko "Join Karo" mein daale</div>
+      </div>
+      <button class="btn green" onclick="copyCode()">📋 Code Copy Karo</button>
       <div class="waiting" id="wait-txt">⏳ Dost ke join karne ka wait...</div>`;
   });
   peer.on('connection',c=>{
     conn=c; setupConn();
     const wt=document.getElementById('wait-txt');
-    if(wt) wt.textContent='✅ Connect ho gaya! Shuru ho raha hai...';
+    if(wt) wt.textContent='✅ Dost aa gaya! Shuru ho raha hai...';
     setTimeout(()=>{
       p2name=c.metadata?.name||'Player 2';
       startGameUI();
       send({type:'start',game:currentGame,grid:GRID,p1name:myName,p2name:p2name,tttBoard,cfBoard,hL,vL,bx,dbScores,currentTurn,gameOver:false});
     },300);
   });
-  peer.on('error',e=>{document.getElementById('host-card').innerHTML+='<div class="status">❌ '+e.message+' — Reload karo!</div>';});
+  peer.on('error',e=>{
+    if(e.type==='unavailable-id'){myRoomCode=genCode();peer.destroy();setTimeout(window.hostGame,500);}
+    else{const hc=document.getElementById('host-card');if(hc)hc.innerHTML+='<div class="status">❌ '+e.message+'</div>';}
+  });
+};
+
+window.copyCode=function(){
+  navigator.clipboard.writeText(myRoomCode).then(()=>{
+    const btns=document.querySelectorAll('.btn.green');
+    btns.forEach(b=>{b.textContent='✅ Copied!';setTimeout(()=>b.textContent='📋 Code Copy Karo',2000);});
+  }).catch(()=>alert('Code: '+myRoomCode));
 };
 
 window.joinGame=function(){
+  // legacy URL join (kept for backward compat)
   const params=new URLSearchParams(location.search);
   const pid=params.get('join');
-  if(!pid){document.getElementById('jst').textContent='❌ Host ka link click karo!';return;}
-  myName=document.getElementById('n2').value.trim()||'Player 2';
-  myRole='p2'; p2name=myName;
-  currentGame=params.get('game')||currentGame;
-  GRID=parseInt(params.get('g'))||6;
+  if(!pid){document.getElementById('jst').textContent='❌ Room code daalo neeche!';return;}
+  joinWithCode(pid, params.get('game'), parseInt(params.get('g'))||6, document.getElementById('n2').value.trim()||'Player 2');
+};
+
+window.joinByCode=function(){
+  const code=document.getElementById('room-code-input').value.trim().toUpperCase();
+  const name=document.getElementById('n2').value.trim()||'Player 2';
+  if(code.length!==4){document.getElementById('jst').textContent='❌ 4 letter code daalo!';return;}
+  joinWithCode('GZ-'+code+'-p1', currentGame, GRID, name);
+};
+
+function joinWithCode(hostPeerId, game, grid, name){
+  myName=name; myRole='p2'; p2name=name;
+  if(game) currentGame=game;
+  if(grid) GRID=grid;
   document.getElementById('jst').textContent='🔄 Connect ho raha hoon...';
-  const peerCfg2={config:{iceServers:[
-    {urls:'stun:stun.l.google.com:19302'},
-    {urls:'stun:stun1.l.google.com:19302'},
-    {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
-    {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
-  ]},debug:0};
-  peer=new Peer(null,peerCfg2);
+  if(peer){try{peer.destroy();}catch(e){}}
+  peer=new Peer(null,{
+    config:{iceServers:[
+      {urls:'stun:stun.l.google.com:19302'},
+      {urls:'stun:stun1.l.google.com:19302'},
+      {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
+      {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
+    ]},debug:0
+  });
   peer.on('open',()=>{
-    document.getElementById('jst').textContent='🔄 Host se connect ho raha hoon...';
-    conn=peer.connect(pid,{metadata:{name:myName},reliable:true});
+    document.getElementById('jst').textContent='🔗 Host se jud raha hoon...';
+    conn=peer.connect(hostPeerId,{metadata:{name:myName},reliable:true});
     setupConn();
-    // retry if not connected in 4s
     setTimeout(()=>{
       if(!conn||!conn.open){
         document.getElementById('jst').textContent='🔄 Dobara try kar raha hoon...';
-        conn=peer.connect(pid,{metadata:{name:myName},reliable:true});
+        conn=peer.connect(hostPeerId,{metadata:{name:myName},reliable:true});
         setupConn();
       }
-    },4000);
+    },3000);
   });
-  peer.on('error',()=>{document.getElementById('jst').textContent='❌ Host nahi mila! Naya link maango.';});
-};
+  peer.on('error',()=>{document.getElementById('jst').textContent='❌ Host nahi mila! Code sahi hai? Host ne room banaya?';});
+}
 
 function setupConn(){
   conn.on('data',data=>{
@@ -488,10 +528,10 @@ window.shareLink=function(){
   else navigator.clipboard.writeText(link).then(()=>alert('✅ Link copy ho gaya!\n'+link));
 };
 
-// auto join
-const params=new URLSearchParams(location.search);
-if(params.get('join')){
-  const g=params.get('game');
+// auto join from URL
+const _params=new URLSearchParams(location.search);
+if(_params.get('join')){
+  const g=_params.get('game');
   if(g) selectGame(g);
 }
 </script>
