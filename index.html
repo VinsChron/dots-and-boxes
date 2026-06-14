@@ -11,7 +11,7 @@ body{font-family:'Segoe UI',sans-serif;background:#0a0a14;color:#fff;min-height:
 .logo{font-size:28px;font-weight:800;letter-spacing:2px;margin-bottom:4px}
 .logo span{color:#4f8ef7}
 .sub{font-size:13px;color:#555;margin-bottom:30px}
-.games-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;width:100%;max-width:520px}
+.games-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;width:100%;max-width:600px}
 .game-card{background:#1a1a2e;border-radius:16px;padding:20px 16px;border:1px solid #2a2a45;cursor:pointer;transition:transform .2s,border-color .2s;text-align:center}
 .game-card:hover{transform:translateY(-3px);border-color:#4f8ef7}
 .game-card .icon{font-size:42px;margin-bottom:10px}
@@ -20,7 +20,6 @@ body{font-family:'Segoe UI',sans-serif;background:#0a0a14;color:#fff;min-height:
 .back-btn{background:transparent;border:1px solid #333;color:#aaa;padding:8px 16px;border-radius:10px;cursor:pointer;font-size:13px;margin-bottom:16px}
 .back-btn:hover{background:#1a1a2e}
 
-/* LOBBY */
 .lobby{display:none;flex-direction:column;align-items:center;padding:20px 16px;width:100%;max-width:380px;margin:0 auto}
 .card{background:#1a1a2e;border-radius:16px;padding:20px;margin-bottom:14px;border:1px solid #2a2a45;width:100%}
 .card h2{font-size:14px;color:#aaa;margin-bottom:12px;font-weight:600}
@@ -37,7 +36,6 @@ input:focus,select:focus{border-color:#4f8ef7}
 .waiting{animation:pulse 1.5s infinite;color:#666;font-size:13px;text-align:center;margin-top:8px}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* GAME AREA */
 .game-area{display:none;flex-direction:column;align-items:center;padding:16px;width:100%;max-width:440px;margin:0 auto}
 .scores{display:flex;gap:10px;margin-bottom:12px;width:100%}
 .sc{flex:1;background:#1a1a2e;border-radius:12px;padding:10px;border:2px solid transparent;text-align:center;transition:border-color .3s}
@@ -51,29 +49,22 @@ input:focus,select:focus{border-color:#4f8ef7}
 .btn-s{flex:1;padding:10px;border-radius:10px;border:1px solid #333;background:#1a1a2e;color:#ccc;font-size:13px;cursor:pointer}
 .btn-s:hover{background:#2a2a45}
 
-/* TIC TAC TOE */
 .ttt-board{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(320px,90vw)}
 .ttt-cell{aspect-ratio:1;background:#1a1a2e;border-radius:12px;border:1px solid #2a2a45;font-size:52px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s}
 .ttt-cell:hover{background:#252540}
 .ttt-cell.x{color:#4f8ef7}.ttt-cell.o{color:#e24b4a}
-.ttt-cell.win-cell{background:#252540;border-color:#4f8ef7}
 
-/* CONNECT FOUR */
 #cf-board{background:#1a3a8f;border-radius:12px;padding:10px;display:inline-block}
-.cf-row{display:flex;gap:6px;margin-bottom:6px}
-.cf-col-btn{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.cf-col-btn{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:2px}
 .cf-cell{width:44px;height:44px;border-radius:50%;background:#0a1a4a;transition:background .2s}
-.cf-col-btn:hover .cf-cell:first-child{background:#555}
 .cf-cell.p1{background:#f7c948}.cf-cell.p2{background:#e24b4a}
-.cf-cell.win-cell{box-shadow:0 0 0 3px #fff}
 
-/* DOTS AND BOXES */
 #db-canvas{display:block;margin:0 auto;touch-action:none;border-radius:12px;background:#111120}
 </style>
 </head>
 <body>
 
-<!-- HOME SCREEN -->
+<!-- HOME -->
 <div class="home" id="home-screen">
   <div class="logo">GAME <span>ZONE</span></div>
   <p class="sub">Real-time multiplayer — dost ko link bhejo!</p>
@@ -88,15 +79,15 @@ input:focus,select:focus{border-color:#4f8ef7}
       <div class="gname">Connect Four</div>
       <div class="gdesc">4 in a row banao</div>
     </div>
-    <div class="game-card" onclick="selectGame('sh')">
-      <div class="icon">🔫</div>
-      <div class="gname">Battle Zone</div>
-      <div class="gdesc">Gun fight, jump & shoot!</div>
-    </div>
     <div class="game-card" onclick="selectGame('db')">
       <div class="icon">🎮</div>
       <div class="gname">Dots & Boxes</div>
       <div class="gdesc">Dots jod ke boxes banao</div>
+    </div>
+    <div class="game-card" onclick="goShooter()">
+      <div class="icon">🔫</div>
+      <div class="gname">Battle Zone</div>
+      <div class="gdesc">Gun fight, jump & shoot!</div>
     </div>
   </div>
 </div>
@@ -138,22 +129,11 @@ input:focus,select:focus{border-color:#4f8ef7}
     <div class="sc" id="sc2"><div class="sc-lbl" id="lb2">P2 🔴</div><div class="sc-num red-t" id="s2">0</div></div>
   </div>
   <div class="turn-bar" id="tb">...</div>
-
-  <!-- TTT -->
-  <div id="ttt-container" style="display:none">
-    <div class="ttt-board" id="ttt-board"></div>
-  </div>
-
-  <!-- Connect Four -->
+  <div id="ttt-container" style="display:none"><div class="ttt-board" id="ttt-board"></div></div>
   <div id="cf-container" style="display:none">
-    <div id="cf-board"></div>
+    <div id="cf-board" style="display:flex;gap:4px"></div>
   </div>
-
-  <!-- Dots & Boxes -->
-  <div id="db-container" style="display:none">
-    <canvas id="db-canvas"></canvas>
-  </div>
-
+  <div id="db-container" style="display:none"><canvas id="db-canvas"></canvas></div>
   <div class="win" id="wm"></div>
   <div class="btns">
     <button class="btn-s" onclick="shareLink()">🔗 Link Share</button>
@@ -165,25 +145,19 @@ input:focus,select:focus{border-color:#4f8ef7}
 
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script>
-let peer, conn;
-let myRole='', myName='', currentGame='', hostLink='';
-let gameOver=false, currentTurn='p1';
-let p1name='P1', p2name='P2';
-let GRID=5;
-
-// ── TTT STATE ──
-let tttBoard=[];
-// ── CF STATE ──
-let cfBoard=[], CF_ROWS=6, CF_COLS=7;
-// ── DB STATE ──
+let peer,conn,myRole='',myName='',currentGame='',hostLink='';
+let gameOver=false,currentTurn='p1',p1name='P1',p2name='P2',GRID=6;
+let tttBoard=[],cfBoard=[],CF_ROWS=6,CF_COLS=7;
 let hL,vL,bx,dbScores={p1:0,p2:0};
 let dbCanvas,dbCtx,dbCELL,dbMAR;
+
+function goShooter(){ window.location.href='shooter.html'; }
 
 function selectGame(g){
   currentGame=g;
   document.getElementById('home-screen').style.display='none';
   document.getElementById('lobby-screen').style.display='flex';
-  const titles={ttt:'❌⭕ Tic Tac Toe',cf:'🔴 Connect Four',db:'🎮 Dots & Boxes',sh:'🔫 Battle Zone'};
+  const titles={ttt:'❌⭕ Tic Tac Toe',cf:'🔴 Connect Four',db:'🎮 Dots & Boxes'};
   document.getElementById('game-title').textContent=titles[g];
   document.getElementById('db-options').style.display=g==='db'?'block':'none';
   const params=new URLSearchParams(location.search);
@@ -210,10 +184,9 @@ function goHome(){
   history.replaceState({},'',location.pathname);
 }
 
-// ── HOST ──
 window.hostGame=function(){
   myName=document.getElementById('n1').value.trim()||'Player 1';
-  myRole='p1';
+  myRole='p1'; p1name=myName;
   if(currentGame==='db') GRID=parseInt(document.getElementById('gs').value);
   initGameState();
   peer=new Peer(null,{debug:0});
@@ -222,7 +195,7 @@ window.hostGame=function(){
     hostLink=link;
     document.getElementById('host-card').innerHTML=`
       <h2>✅ Room Ready!</h2>
-      <p style="font-size:12px;color:#888;margin-bottom:8px">Yeh link dost ko bhejo:</p>
+      <p style="font-size:12px;color:#888;margin-bottom:8px">Yeh link dost ko WhatsApp pe bhejo:</p>
       <div class="link-box" onclick="shareLink()">${link}</div>
       <button class="btn green" onclick="shareLink()" style="margin-top:8px">📤 WhatsApp Pe Bhejo</button>
       <div class="waiting">Dost ke join karne ka wait...</div>`;
@@ -232,22 +205,20 @@ window.hostGame=function(){
     setTimeout(()=>{
       p2name=c.metadata?.name||'Player 2';
       startGameUI();
-      send({type:'start',game:currentGame,grid:GRID,p1name:myName,p2name:p2name,
-        tttBoard,cfBoard,hL,vL,bx,dbScores,currentTurn,gameOver:false});
+      send({type:'start',game:currentGame,grid:GRID,p1name:myName,p2name:p2name,tttBoard,cfBoard,hL,vL,bx,dbScores,currentTurn,gameOver:false});
     },600);
   });
-  peer.on('error',e=>{ document.getElementById('host-card').querySelector('.waiting').textContent='❌ '+e.message; });
+  peer.on('error',e=>{document.getElementById('host-card').innerHTML+='<div class="status">❌ '+e.message+'</div>';});
 };
 
-// ── JOIN ──
 window.joinGame=function(){
   const params=new URLSearchParams(location.search);
   const pid=params.get('join');
   if(!pid){document.getElementById('jst').textContent='❌ Host ka link click karo!';return;}
   myName=document.getElementById('n2').value.trim()||'Player 2';
-  myRole='p2';
+  myRole='p2'; p2name=myName;
   currentGame=params.get('game')||currentGame;
-  GRID=parseInt(params.get('g'))||5;
+  GRID=parseInt(params.get('g'))||6;
   document.getElementById('jst').textContent='🔄 Connect ho raha hoon...';
   peer=new Peer(null,{debug:0});
   peer.on('open',()=>{
@@ -255,27 +226,24 @@ window.joinGame=function(){
     setupConn();
     document.getElementById('jst').textContent='⏳ Host ka wait...';
   });
-  peer.on('error',()=>{ document.getElementById('jst').textContent='❌ Host nahi mila!'; });
+  peer.on('error',()=>{document.getElementById('jst').textContent='❌ Host nahi mila! Naya link maango.';});
 };
 
 function setupConn(){
   conn.on('data',data=>{
     if(data.type==='start'){
-      currentGame=data.game; GRID=data.grid||5;
+      currentGame=data.game; GRID=data.grid||6;
       p1name=data.p1name; p2name=data.p2name;
-      tttBoard=data.tttBoard; cfBoard=data.cfBoard;
-      hL=data.hL; vL=data.vL; bx=data.bx; dbScores=data.dbScores;
+      tttBoard=data.tttBoard||[]; cfBoard=data.cfBoard||[];
+      hL=data.hL; vL=data.vL; bx=data.bx; dbScores=data.dbScores||{p1:0,p2:0};
       currentTurn=data.currentTurn; gameOver=data.gameOver;
       startGameUI();
     } else if(data.type==='move'){
-      tttBoard=data.tttBoard||tttBoard;
-      cfBoard=data.cfBoard||cfBoard;
-      hL=data.hL||hL; vL=data.vL||vL; bx=data.bx||bx;
-      dbScores=data.dbScores||dbScores;
+      if(data.tttBoard) tttBoard=data.tttBoard;
+      if(data.cfBoard) cfBoard=data.cfBoard;
+      if(data.hL){hL=data.hL;vL=data.vL;bx=data.bx;dbScores=data.dbScores;}
       currentTurn=data.currentTurn; gameOver=data.gameOver;
-      renderGame();
-      updateScoreUI();
-      updateTurnBar();
+      renderGame(); updateScoreUI(); updateTurnBar();
       if(gameOver&&data.winner) showWin(data.winner);
     } else if(data.type==='restart'){
       initGameState(); gameOver=false; currentTurn='p1';
@@ -283,12 +251,11 @@ function setupConn(){
       document.getElementById('wm').style.display='none';
     }
   });
-  conn.on('close',()=>{ if(!gameOver) alert('Dost ne disconnect kar diya!'); });
+  conn.on('close',()=>{if(!gameOver)alert('Dost ne disconnect kar diya!');});
 }
 
-function send(data){ if(conn&&conn.open) conn.send(data); }
+function send(d){if(conn&&conn.open)conn.send(d);}
 
-// ── INIT STATE ──
 function initGameState(){
   tttBoard=Array(9).fill('');
   cfBoard=Array.from({length:CF_ROWS},()=>Array(CF_COLS).fill(0));
@@ -298,7 +265,6 @@ function initGameState(){
   dbScores={p1:0,p2:0}; currentTurn='p1'; gameOver=false;
 }
 
-// ── START GAME UI ──
 function startGameUI(){
   document.getElementById('lobby-screen').style.display='none';
   document.getElementById('home-screen').style.display='none';
@@ -314,13 +280,9 @@ function startGameUI(){
 }
 
 function updateScoreUI(){
-  if(currentGame==='db'){
-    document.getElementById('s1').textContent=dbScores.p1;
-    document.getElementById('s2').textContent=dbScores.p2;
-  }
-  const c1=document.getElementById('sc1'),c2=document.getElementById('sc2');
-  c1.className='sc'+(currentTurn==='p1'?' a1':'');
-  c2.className='sc'+(currentTurn==='p2'?' a2':'');
+  if(currentGame==='db'){document.getElementById('s1').textContent=dbScores.p1;document.getElementById('s2').textContent=dbScores.p2;}
+  document.getElementById('sc1').className='sc'+(currentTurn==='p1'?' a1':'');
+  document.getElementById('sc2').className='sc'+(currentTurn==='p2'?' a2':'');
 }
 
 function updateTurnBar(){
@@ -336,7 +298,7 @@ function renderGame(){
   else if(currentGame==='db') drawDB();
 }
 
-// ── TTT ──
+// TTT
 function renderTTT(){
   const board=document.getElementById('ttt-board');
   board.innerHTML='';
@@ -353,27 +315,28 @@ function tttMove(i){
   if(tttBoard[i]||gameOver||currentTurn!==myRole) return;
   tttBoard[i]=myRole==='p1'?'X':'O';
   const winner=checkTTT();
-  gameOver=!!winner||(tttBoard.every(c=>c));
+  gameOver=!!winner||tttBoard.every(c=>c);
   if(!winner&&!gameOver) currentTurn=myRole==='p1'?'p2':'p1';
   renderTTT(); updateTurnBar();
-  send({type:'move',tttBoard,currentTurn,gameOver,winner:winner||''});
-  if(winner) showWin(winner==='X'?p1name:p2name);
-  else if(gameOver) showWin('Draw');
+  const wn=winner?(winner==='X'?p1name:p2name):(gameOver?'Draw':'');
+  send({type:'move',tttBoard,currentTurn,gameOver,winner:wn});
+  if(wn) showWin(wn);
 }
 
 function checkTTT(){
-  const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-  for(const [a,b,c] of wins) if(tttBoard[a]&&tttBoard[a]===tttBoard[b]&&tttBoard[a]===tttBoard[c]) return tttBoard[a];
+  const w=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for(const [a,b,c] of w) if(tttBoard[a]&&tttBoard[a]===tttBoard[b]&&tttBoard[a]===tttBoard[c]) return tttBoard[a];
   return null;
 }
 
-// ── CONNECT FOUR ──
+// CF
 function renderCF(){
   const board=document.getElementById('cf-board');
   board.innerHTML='';
   for(let c=0;c<CF_COLS;c++){
     const col=document.createElement('div');
     col.className='cf-col-btn';
+    col.style.cssText='display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:2px';
     if(!gameOver&&currentTurn===myRole) col.onclick=()=>cfMove(c);
     for(let r=0;r<CF_ROWS;r++){
       const cell=document.createElement('div');
@@ -387,7 +350,7 @@ function renderCF(){
 function cfMove(col){
   if(gameOver||currentTurn!==myRole) return;
   let row=-1;
-  for(let r=CF_ROWS-1;r>=0;r--){ if(!cfBoard[r][col]){row=r;break;} }
+  for(let r=CF_ROWS-1;r>=0;r--){if(!cfBoard[r][col]){row=r;break;}}
   if(row===-1) return;
   cfBoard[row][col]=myRole==='p1'?1:2;
   const winner=checkCF();
@@ -395,32 +358,34 @@ function cfMove(col){
   gameOver=!!winner||full;
   if(!winner&&!gameOver) currentTurn=myRole==='p1'?'p2':'p1';
   renderCF(); updateTurnBar();
-  send({type:'move',cfBoard,currentTurn,gameOver,winner:winner?myRole:''});
-  if(winner) showWin(myRole==='p1'?p1name:p2name);
-  else if(full) showWin('Draw');
+  const wn=winner?(myRole==='p1'?p1name:p2name):(full?'Draw':'');
+  send({type:'move',cfBoard,currentTurn,gameOver,winner:wn});
+  if(wn) showWin(wn);
 }
 
 function checkCF(){
   const v=myRole==='p1'?1:2;
   for(let r=0;r<CF_ROWS;r++) for(let c=0;c<CF_COLS;c++){
     if(cfBoard[r][c]!==v) continue;
-    if(c+3<CF_COLS&&cfBoard[r][c+1]===v&&cfBoard[r][c+2]===v&&cfBoard[r][c+3]===v) return true;
-    if(r+3<CF_ROWS&&cfBoard[r+1][c]===v&&cfBoard[r+2][c]===v&&cfBoard[r+3][c]===v) return true;
-    if(r+3<CF_ROWS&&c+3<CF_COLS&&cfBoard[r+1][c+1]===v&&cfBoard[r+2][c+2]===v&&cfBoard[r+3][c+3]===v) return true;
-    if(r+3<CF_ROWS&&c-3>=0&&cfBoard[r+1][c-1]===v&&cfBoard[r+2][c-2]===v&&cfBoard[r+3][c-3]===v) return true;
+    if(c+3<CF_COLS&&[1,2,3].every(i=>cfBoard[r][c+i]===v)) return true;
+    if(r+3<CF_ROWS&&[1,2,3].every(i=>cfBoard[r+i][c]===v)) return true;
+    if(r+3<CF_ROWS&&c+3<CF_COLS&&[1,2,3].every(i=>cfBoard[r+i][c+i]===v)) return true;
+    if(r+3<CF_ROWS&&c-3>=0&&[1,2,3].every(i=>cfBoard[r+i][c-i]===v)) return true;
   }
   return false;
 }
 
-// ── DOTS & BOXES ──
+// DB
 function initDbCanvas(){
-  dbCanvas=document.getElementById('db-canvas');
-  dbCtx=dbCanvas.getContext('2d');
+  if(!dbCanvas){
+    dbCanvas=document.getElementById('db-canvas');
+    dbCtx=dbCanvas.getContext('2d');
+    dbCanvas.addEventListener('click',dbClick);
+    dbCanvas.addEventListener('touchstart',dbTouch,{passive:false});
+  }
   const vw=Math.min(window.innerWidth-40,400);
   dbCanvas.width=vw; dbCanvas.height=vw;
   dbMAR=vw*0.1; dbCELL=(vw-dbMAR*2)/GRID;
-  dbCanvas.addEventListener('click',dbClick);
-  dbCanvas.addEventListener('touchstart',dbTouch,{passive:false});
 }
 
 function gp(i){return dbMAR+i*dbCELL;}
@@ -474,46 +439,25 @@ function dbDoMove(x,y){
   gameOver=total===GRID*GRID;
   if(!gained) currentTurn=myRole==='p1'?'p2':'p1';
   drawDB(); updateScoreUI(); updateTurnBar();
-  send({type:'move',hL,vL,bx,dbScores,currentTurn,gameOver,winner:gameOver?'db_done':''});
-  if(gameOver){
-    if(dbScores.p1>dbScores.p2) showWin(p1name);
-    else if(dbScores.p2>dbScores.p1) showWin(p2name);
-    else showWin('Draw');
-  }
+  let wn='';
+  if(gameOver){wn=dbScores.p1>dbScores.p2?p1name:dbScores.p2>dbScores.p1?p2name:'Draw';}
+  send({type:'move',hL,vL,bx,dbScores,currentTurn,gameOver,winner:wn});
+  if(wn) showWin(wn);
 }
 
 function dbClick(e){const r=dbCanvas.getBoundingClientRect();dbDoMove(e.clientX-r.left,e.clientY-r.top);}
 function dbTouch(e){e.preventDefault();const r=dbCanvas.getBoundingClientRect();dbDoMove(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top);}
 
-// ── WIN ──
-function showWin(winner){
-  const wm=document.getElementById('wm');
-  wm.style.display='block';
-  if(winner==='Draw') wm.textContent='🤝 Draw! Dono Barabar!';
-  else wm.textContent='🏆 '+winner+' Jeet Gaya!';
+function showWin(w){
+  const wm=document.getElementById('wm'); wm.style.display='block';
+  wm.textContent=w==='Draw'?'🤝 Draw! Dono Barabar!':'🏆 '+w+' Jeet Gaya!';
 }
 
-// ── RESTART ──
 window.restartGame=function(){
   initGameState();
   document.getElementById('wm').style.display='none';
   renderGame(); updateScoreUI(); updateTurnBar();
   send({type:'restart'});
-};
-
-// ── SHARE ──
-// Shooter redirects to separate page
-function selectGame_orig(g){
-  if(g==='sh'){
-    window.location.href='shooter.html';
-    return;
-  }
-}
-// patch
-const _origSelect = selectGame;
-window.selectGame = function(g){
-  if(g==='sh'){ window.location.href='shooter.html'; return; }
-  _origSelect(g);
 };
 
 window.shareLink=function(){
@@ -522,7 +466,7 @@ window.shareLink=function(){
   else navigator.clipboard.writeText(link).then(()=>alert('✅ Link copy ho gaya!\n'+link));
 };
 
-// ── AUTO JOIN ──
+// auto join
 const params=new URLSearchParams(location.search);
 if(params.get('join')){
   const g=params.get('game');
