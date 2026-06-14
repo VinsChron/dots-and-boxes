@@ -88,6 +88,11 @@ input:focus,select:focus{border-color:#4f8ef7}
       <div class="gname">Connect Four</div>
       <div class="gdesc">4 in a row banao</div>
     </div>
+    <div class="game-card" onclick="selectGame('sh')">
+      <div class="icon">🔫</div>
+      <div class="gname">Battle Zone</div>
+      <div class="gdesc">Gun fight, jump & shoot!</div>
+    </div>
     <div class="game-card" onclick="selectGame('db')">
       <div class="icon">🎮</div>
       <div class="gname">Dots & Boxes</div>
@@ -178,7 +183,7 @@ function selectGame(g){
   currentGame=g;
   document.getElementById('home-screen').style.display='none';
   document.getElementById('lobby-screen').style.display='flex';
-  const titles={ttt:'❌⭕ Tic Tac Toe',cf:'🔴 Connect Four',db:'🎮 Dots & Boxes'};
+  const titles={ttt:'❌⭕ Tic Tac Toe',cf:'🔴 Connect Four',db:'🎮 Dots & Boxes',sh:'🔫 Battle Zone'};
   document.getElementById('game-title').textContent=titles[g];
   document.getElementById('db-options').style.display=g==='db'?'block':'none';
   const params=new URLSearchParams(location.search);
@@ -497,6 +502,20 @@ window.restartGame=function(){
 };
 
 // ── SHARE ──
+// Shooter redirects to separate page
+function selectGame_orig(g){
+  if(g==='sh'){
+    window.location.href='shooter.html';
+    return;
+  }
+}
+// patch
+const _origSelect = selectGame;
+window.selectGame = function(g){
+  if(g==='sh'){ window.location.href='shooter.html'; return; }
+  _origSelect(g);
+};
+
 window.shareLink=function(){
   const link=hostLink||location.href;
   if(navigator.share) navigator.share({title:'Game Zone',text:'Aao mere saath khelo! 🎮',url:link});
