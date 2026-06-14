@@ -189,7 +189,13 @@ window.hostGame=function(){
   myRole='p1'; p1name=myName;
   if(currentGame==='db') GRID=parseInt(document.getElementById('gs').value);
   initGameState();
-  peer=new Peer(null,{debug:0});
+  const peerCfg={config:{iceServers:[
+    {urls:'stun:stun.l.google.com:19302'},
+    {urls:'stun:stun1.l.google.com:19302'},
+    {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
+    {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
+  ]},debug:0};
+  peer=new Peer(null,peerCfg);
   peer.on('open',id=>{
     const link=location.href.split('?')[0]+'?game='+currentGame+'&join='+id+'&n='+encodeURIComponent(myName)+'&g='+GRID;
     hostLink=link;
@@ -198,17 +204,19 @@ window.hostGame=function(){
       <p style="font-size:12px;color:#888;margin-bottom:8px">Yeh link dost ko WhatsApp pe bhejo:</p>
       <div class="link-box" onclick="shareLink()">${link}</div>
       <button class="btn green" onclick="shareLink()" style="margin-top:8px">📤 WhatsApp Pe Bhejo</button>
-      <div class="waiting">Dost ke join karne ka wait...</div>`;
+      <div class="waiting" id="wait-txt">⏳ Dost ke join karne ka wait...</div>`;
   });
   peer.on('connection',c=>{
     conn=c; setupConn();
+    const wt=document.getElementById('wait-txt');
+    if(wt) wt.textContent='✅ Connect ho gaya! Shuru ho raha hai...';
     setTimeout(()=>{
       p2name=c.metadata?.name||'Player 2';
       startGameUI();
       send({type:'start',game:currentGame,grid:GRID,p1name:myName,p2name:p2name,tttBoard,cfBoard,hL,vL,bx,dbScores,currentTurn,gameOver:false});
-    },600);
+    },300);
   });
-  peer.on('error',e=>{document.getElementById('host-card').innerHTML+='<div class="status">❌ '+e.message+'</div>';});
+  peer.on('error',e=>{document.getElementById('host-card').innerHTML+='<div class="status">❌ '+e.message+' — Reload karo!</div>';});
 };
 
 window.joinGame=function(){
@@ -220,11 +228,25 @@ window.joinGame=function(){
   currentGame=params.get('game')||currentGame;
   GRID=parseInt(params.get('g'))||6;
   document.getElementById('jst').textContent='🔄 Connect ho raha hoon...';
-  peer=new Peer(null,{debug:0});
+  const peerCfg2={config:{iceServers:[
+    {urls:'stun:stun.l.google.com:19302'},
+    {urls:'stun:stun1.l.google.com:19302'},
+    {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
+    {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
+  ]},debug:0};
+  peer=new Peer(null,peerCfg2);
   peer.on('open',()=>{
-    conn=peer.connect(pid,{metadata:{name:myName}});
+    document.getElementById('jst').textContent='🔄 Host se connect ho raha hoon...';
+    conn=peer.connect(pid,{metadata:{name:myName},reliable:true});
     setupConn();
-    document.getElementById('jst').textContent='⏳ Host ka wait...';
+    // retry if not connected in 4s
+    setTimeout(()=>{
+      if(!conn||!conn.open){
+        document.getElementById('jst').textContent='🔄 Dobara try kar raha hoon...';
+        conn=peer.connect(pid,{metadata:{name:myName},reliable:true});
+        setupConn();
+      }
+    },4000);
   });
   peer.on('error',()=>{document.getElementById('jst').textContent='❌ Host nahi mila! Naya link maango.';});
 };
