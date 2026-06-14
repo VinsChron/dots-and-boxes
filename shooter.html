@@ -16,7 +16,7 @@ body{background:#0a0a14;color:#fff;font-family:'Segoe UI',sans-serif;overflow:hi
 input{width:100%;padding:10px 14px;border-radius:10px;border:1px solid #333;background:#0a0a14;color:#fff;font-size:15px;margin-bottom:10px;outline:none}
 .btn{width:100%;padding:12px;border-radius:10px;border:none;font-size:15px;font-weight:700;cursor:pointer}
 .blue{background:#4f8ef7;color:#fff}
-.red{background:#e24b4a;color:#fff} 
+.red{background:#e24b4a;color:#fff}
 .green{background:#22c55e;color:#fff}
 .or{text-align:center;color:#333;margin:8px 0;font-size:13px}
 .status{text-align:center;font-size:13px;color:#f59e0b;min-height:18px;margin:4px 0}
@@ -412,7 +412,13 @@ window.hostGame=function(){
   myName=document.getElementById('n1').value.trim()||'Player 1';
   myRole='p1';
   players.p1.name=myName;
-  peer=new Peer(null,{debug:0});
+  const pCfg={config:{iceServers:[
+    {urls:'stun:stun.l.google.com:19302'},
+    {urls:'stun:stun1.l.google.com:19302'},
+    {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
+    {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
+  ]},debug:0};
+  peer=new Peer(null,pCfg);
   peer.on('open',id=>{
     hostLink=location.href.split('?')[0]+'?join='+id+'&n='+encodeURIComponent(myName);
     document.getElementById('host-card').innerHTML=`
@@ -439,9 +445,15 @@ window.joinGame=function(){
   myRole='p2';
   players.p2.name=myName;
   document.getElementById('jst').textContent='🔄 Connect ho raha hoon...';
-  peer=new Peer(null,{debug:0});
+  const pCfg2={config:{iceServers:[
+    {urls:'stun:stun.l.google.com:19302'},
+    {urls:'stun:stun1.l.google.com:19302'},
+    {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
+    {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
+  ]},debug:0};
+  peer=new Peer(null,pCfg2);
   peer.on('open',()=>{
-    conn=peer.connect(pid,{metadata:{name:myName}});
+    conn=peer.connect(pid,{metadata:{name:myName},reliable:true});
     setupConn();
     document.getElementById('jst').textContent='⏳ Host ka wait...';
   });
